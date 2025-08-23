@@ -1,0 +1,3 @@
+=== MAIL LOG: 2025-07-28 11:32:38 ===
+⚠️ No executing user CC found for vendor ID 38
+❌ Sent to: subho@aiplapps.com (ID: 38)

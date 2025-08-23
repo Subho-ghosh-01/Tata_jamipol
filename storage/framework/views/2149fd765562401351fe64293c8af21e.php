@@ -1,0 +1,140 @@
+<?php
+use App\Division;
+use App\Department;
+use App\UserLogin;
+
+
+?>
+
+<?php $__env->startSection('breadcrumbs'); ?>
+    <li class="breadcrumb-item"><a href="<?php echo e(route('admin.dashboard')); ?>">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="<?php echo e(route('admin.vendor_esic_details.index')); ?>">List of VMS
+            Documents</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Vehicle Pass Management System</li>
+<?php $__env->stopSection(); ?>
+<?php if(Session::get('user_sub_typeSession') == 4): ?>
+    return redirect('admin/dashboard');
+<?php else: ?>
+
+
+    <?php $__env->startSection('content'); ?>
+        <iframe id="myIframe" src="<?php echo e(url('vendor_mis/create_ifream/' . $id)); ?>" style="border: none; overflow: hidden;"
+            width="101%" height="2000px" scrolling="no"></iframe>
+        <center>
+            <div class="classic-10" id="iframe-loader"></div>
+        </center>
+
+        <style>
+            .classic-10 {
+                --w: 10ch;
+                font-weight: bold;
+                font-family: monospace;
+                font-size: 30px;
+
+                line-height: 1.4em;
+                letter-spacing: var(--w);
+                width: var(--w);
+                overflow: hidden;
+                white-space: nowrap;
+                color: #0000;
+                text-shadow:
+                    calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                    calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000;
+                animation: c10 2s infinite linear;
+            }
+
+            .classic-10:before {
+                content: "Loading...";
+            }
+
+            @keyframes c10 {
+                9.09% {
+                    text-shadow:
+                        calc(0*var(--w)) -10px #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000
+                }
+
+                18.18% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) -10px #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000
+                }
+
+                27.27% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) -10px #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000
+                }
+
+                36.36% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) -10px #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000
+                }
+
+                45.45% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) -10px #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000
+                }
+
+                54.54% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) -10px #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000
+                }
+
+                63.63% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) -10px #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000
+                }
+
+                72.72% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) -10px #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) 0 #000
+                }
+
+                81.81% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) -10px #000, calc(-9*var(--w)) 0 #000
+                }
+
+                90.90% {
+                    text-shadow:
+                        calc(0*var(--w)) 0 #000, calc(-1*var(--w)) 0 #000, calc(-2*var(--w)) 0 #000, calc(-3*var(--w)) 0 #000, calc(-4*var(--w)) 0 #000,
+                        calc(-5*var(--w)) 0 #000, calc(-6*var(--w)) 0 #000, calc(-7*var(--w)) 0 #000, calc(-8*var(--w)) 0 #000, calc(-9*var(--w)) -10px #000
+                }
+            }
+        </style>
+    <?php $__env->stopSection(); ?>
+<?php endif; ?>
+<?php $__env->startSection('scripts'); ?>
+
+    <script>
+        const iframe = document.getElementById('myIframe');
+        const loader = document.getElementById('iframe-loader');
+
+        iframe.onload = function () {
+            // Hide loader
+            loader.style.display = 'none';
+
+            // Show iframe
+            iframe.style.display = 'block';
+
+            // Set height based on iframe content
+            try {
+                // iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+            } catch (e) {
+                console.warn('Could not access iframe content. Possibly cross-origin.');
+            }
+        };
+    </script>
+
+
+
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('admin.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\8.4 php\htdocs\jamipol\resources\views/admin/vendor_mis/create.blade.php ENDPATH**/ ?>

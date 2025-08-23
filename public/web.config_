@@ -1,0 +1,19 @@
+
+<configuration>
+<system.webServer>
+        <urlCompression doDynamicCompression="true" />
+    <rewrite>
+ <rules>
+     <rule name="Main Rule 2" stopProcessing="true">
+         <match url=".*" />
+         <conditions logicalGrouping="MatchAll">
+             <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+             <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+         </conditions>
+         <action type="Rewrite" url="index.php/{R:1}" />
+     </rule>
+ </rules>
+</rewrite>
+    <httpErrors errorMode="Detailed" />
+</system.webServer>
+</configuration>

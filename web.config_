@@ -1,0 +1,95 @@
+<configuration>
+  <system.webServer>
+    <httpProtocol>
+        <customHeaders>
+            <add name="Content-Security-Policy" value="default-src: https:; frame-ancestors 'self' X-Frame-Options: SAMEORIGIN" />
+			        <add name="X-Content-Type-Options" value="nosniff" />        
+		            <remove name="X-Powered-By" />
+					<remove name="X-Powered-By-Plesk" />
+										<remove name="Server" />
+
+
+
+					 <add name="X-XSS-Protection" value="1; mode=block" />
+
+        </customHeaders>
+    </httpProtocol>
+     <security>
+      <requestFiltering removeServerHeader="true">
+	  <verbs allowUnlisted="true">
+               <add verb="TRACE" allowed="false" />
+			    <add verb="HEAD" allowed="false" />
+               <add verb="OPTIONS" allowed="false" />
+
+            </verbs>
+        <alwaysAllowedUrls>
+          <add url="/node_modules/jquery-datetimepicker/jquery.datetimepicker.css" />
+          <add url="/node_modules/jquery-datetimepicker/jquery.datetimepicker.js" />
+        </alwaysAllowedUrls>
+      </requestFiltering> 
+    </security>
+    <urlCompression doDynamicCompression="true" />
+    <defaultDocument>
+      <files>
+        <clear />
+        <add value="index.php" />
+        <add value="default.aspx" />
+        <add value="Default.htm" />
+        <add value="Default.asp" />
+        <add value="index.htm" />
+        <add value="index.html" />
+      </files>
+    </defaultDocument>
+    <rewrite>
+      <rules>
+        <rule name="Main Rule" stopProcessing="true">
+          <match url=".*" />
+          <conditions logicalGrouping="MatchAll">
+                        <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+                        <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="index.php" />
+        </rule>
+      </rules>
+      <outboundRules>
+        <rule name="Add Strict-Transport-Security when HTTPS" enabled="true">
+          <match serverVariable="RESPONSE_Strict_Transport_Security" pattern=".*" />
+          <conditions>
+            <add input="{HTTPS}" pattern="on" ignoreCase="true" />
+          </conditions>
+          <action type="Rewrite" value="max-age=63072000" />
+        </rule>
+				
+		<clear />
+<rule name="Add SameSite" preCondition="No SameSite">
+<match serverVariable="RESPONSE_Set_Cookie" pattern=".*" negate="false" />
+<action type="Rewrite" value="{R:0}; SameSite=lax" />
+</rule>
+<preConditions>
+<preCondition name="No SameSite">
+<add input="{RESPONSE_Set_Cookie}" pattern="." />
+<add input="{RESPONSE_Set_Cookie}" pattern="; SameSite=lax" negate="true" />
+</preCondition>
+</preConditions>
+      </outboundRules>
+    </rewrite>
+	<!--<httpErrors errorMode="DetailedLocalOnly">
+    <customErrors mode="RemoteOnly" />
+</httpErrors>-->
+  
+	   <tracing>
+      <traceFailedRequests>
+        <clear />
+      </traceFailedRequests>
+    </tracing>
+        <handlers>
+            <remove name="FastCGI" />
+        </handlers>
+	
+  </system.webServer>
+  <system.web>
+      <httpRuntime enableVersionHeader="false" />
+  <httpCookies httpOnlyCookies="true" requireSSL="true" />
+    <compilation tempDirectory="D:\8.4 php\htdocs\jamipol\tmp" />
+  </system.web>
+</configuration>
