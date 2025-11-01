@@ -257,9 +257,11 @@ class VMS_ifreamController extends Controller
             'created_at' => $currentDateTime,
             'created_by' => $request->uid,
 
+
             'division_id' => $find_user->division_id,
             'sl' => $sl,
-            'full_sl' => $full_sl
+            'full_sl' => $full_sl,
+            'registraction_to' => $request->registration_date_to
 
         ]);
 
@@ -524,11 +526,18 @@ class VMS_ifreamController extends Controller
                 ->subject($user['subject']);
             $message->from('web@jamipol.com');
         });
+        if ($decision == 'approve') {
+            return response()->json([
+                'message' => 'The vehicle entry pass is approved!',
+                'data' => $vms_ifream // full joined data
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'The vehicle entry pass is rejected!',
+                'data' => $vms_ifream // full joined data
+            ]);
+        }
 
-        return response()->json([
-            'message' => 'Update processed successfully!',
-            'data' => $vms_ifream // full joined data
-        ]);
     }
 
 
@@ -631,11 +640,17 @@ class VMS_ifreamController extends Controller
                 ->subject($user['subject']);
             $message->from('web@jamipol.com');
         });
-
-        return response()->json([
-            'message' => 'Update processed successfully!',
-            'data' => $vms_ifream // full joined data
-        ]);
+        if ($decision == 'approve') {
+            return response()->json([
+                'message' => 'The vehicle entry pass is approved!',
+                'data' => $vms_ifream // full joined data
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'The vehicle entry pass is rejected!',
+                'data' => $vms_ifream // full joined data
+            ]);
+        }
     }
 
 
@@ -683,7 +698,7 @@ class VMS_ifreamController extends Controller
             // Update database record
             $updateData = [
                 'status' => 'pending_with_safety',
-                'driven_by' => $request->driver_type,
+                'driven_by' => $request->driver_type ?? '',
                 'driver_name' => $request->driver_name,
                 'driving_license_no' => $request->license_no,
                 'license_valid_from' => $request->license_valid_from,
@@ -890,9 +905,10 @@ class VMS_ifreamController extends Controller
             'license_valid_from' => $request->license_valid_from,
             'license_valid_to' => $request->license_valid_to,
             'driving_license_doc' => $licensePath,
-            'driven_by' => $request->driver_type,
+            'driven_by' => $request->driver_type ?? '',
             'driver_name' => $request->driver_name,
-            'updated_datetime' => now()
+            'updated_datetime' => now(),
+            'registraction_to' => $request->registration_date_to
 
         ]);
 

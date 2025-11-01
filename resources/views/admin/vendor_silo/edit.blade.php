@@ -4,8 +4,8 @@ use App\Division;
 use App\Department;
 use App\UserLogin;
 
-$vms = DB::table('vendor_mis')->where('id', $vms_details->id)->first();
-
+$vms = DB::table('vendor_silo')->where('id', $vms_details->id)->first();
+$user_id = Session::get('user_idSession');
 
 ?>
 
@@ -21,8 +21,8 @@ $vms = DB::table('vendor_mis')->where('id', $vms_details->id)->first();
 @if(Session::get('user_sub_typeSession') == 4)
     <script>window.location.href = '{{ url("admin/dashboard") }}';</script>
 @else
-    <iframe id="myIframe" src="{{ route('vendor_mis.edit_ifream', $vms->id)}}" style="border: none; overflow: hidden;"
-        width="101%" width="100%" height="" scrolling="no"></iframe>
+    <iframe id="myIframe" src="{{ route('vendor_silo.edit_ifream', [$vms->id, $user_id])}}"
+        style="border: none; width: 101%; height: 100%; overflow: auto; margin-right: -17px;"></iframe>
     <center>
         <div class="classic-10" id="iframe-loader"></div>
     </center></iframe>
@@ -121,27 +121,20 @@ $vms = DB::table('vendor_mis')->where('id', $vms_details->id)->first();
 
         // Listen for message from iframe
         window.addEventListener('message', function (e) {
-            if (e.data === 'iframeLoaded') {
-                // Hide loader
+            if (e.data && e.data.type === 'iframeLoaded') {
                 loader.style.display = 'none';
-
-                // Show iframe
                 iframe.style.display = 'block';
-
-                // Adjust height
-                try {
-                    iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
-                } catch (e) {
-                    iframe.style.height = '1000px'; // fallback
-                    console.warn('Could not access iframe height:', e);
-                }
+                iframe.style.height = e.data.height + 'px';
             }
         });
     </script>
-    <script>
-        window.addEventListener('load', function () {
-            parent.postMessage('iframeLoaded', '*');
-        });
-    </script>
-
 @endsection
+<script>
+    function sendIframeHeight() {
+        const height = document.body.scrollHeight;
+        parent.postMessage({ type: 'iframeLoaded', height: height }, '*');
+    }
+
+    window.addEventListener('load', sendIframeHeight);
+    window.addEventListener('resize', sendIframeHeight);
+</script>

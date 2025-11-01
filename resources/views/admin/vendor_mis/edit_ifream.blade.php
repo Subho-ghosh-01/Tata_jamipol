@@ -7,6 +7,10 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis_id', $vms->id)->wher
 
 $vehicle_status = $vms->status;
 $vendor_level = $vms_flow->level ?? 'NA';
+
+$user_check_safety = UserLogin::where('id', $user_id)->select('clm_role','user_sub_type')->first();
+
+$usersub_category = $user_check_safety->user_sub_type;
 ?>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -196,9 +200,10 @@ $vendor_level = $vms_flow->level ?? 'NA';
                 });
             });
 
-
+$('.bn').prop('disabled',true).addClass('disabled');
         } else {
-
+ $('.dn').addClass('d-none');
+            $('.hd').prop('disabled', true).addClass('disabled');
 
         }
     });
@@ -511,19 +516,9 @@ $vendor_level = $vms_flow->level ?? 'NA';
 
                     <input type="number" class="form-control indicator-value hd" name="lead1_val" id="lead1_val" min="0"
                         required value="{{$vms->lead1_val}}">
-                    <label class="mt-2 ">Attachment</label>
-                    @if(!empty($vms->lead1_doc))
-                        <div class="mb-2">
-                            <a href="{{ asset($vms->lead1_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                📎 View Existing File
-                            </a>
-                        </div>
-                    @endif
-                    <div class="file-dropzone dn" data-target="lead1_doc">
-                        <span>Drag & drop PDF here or click to upload</span>
-                        <input type="file" class="form-control d-none indicator-attachment" name="lead1_doc"
-                            id="lead1_doc" accept="application/pdf">
-                    </div>
+                    
+                  
+                    
                 </div>
 
                 <div class="form-group">
@@ -930,14 +925,14 @@ $vendor_level = $vms_flow->level ?? 'NA';
 
         </div>
     </div>
-    <div class="text-center mt-4 dn">
-        <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm" style="font-size: 1.1rem;"
-            id="submit-btn">
-            <span id="spinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
-            <i class="fas fa-check-circle me-2" id="btn-icon"></i>
-            <span id="btn-text">Submit</span>
-        </button>
-    </div>
+    @if($vms->status =='draft' || $usersub_category == '3')
+    <div class="text-center mt-4">
+    <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm" style="font-size: 1.1rem;">
+        <i class="fas fa-edit me-2"></i>
+       <a  style="color:white;" href="{{ route('vendor_mis.edit_data_ifream', [$vms->id, $user_id]) }}"> Click here to edit your required details</a>
+    </button>
+</div>
+@endif
 
 </form>
 @php
@@ -982,6 +977,8 @@ $vendor_level = $vms_flow->level ?? 'NA';
 @php  
     $flow = DB::table('vendor_mis_flow')->where('vendor_mis_id', $vms->id)->where('status', 'N')->where('level', '!=', '0')->first();
 @endphp
+
+@if($user_check_safety->clm_role == 'Safety_dept')
 <div class="card-body material-card mt-4 shadow rounded-3" @if(@$flow->id) {{''}}@else{{'hidden'}}@endif>
 
     <form id="hr_form" method="POST">
@@ -1042,7 +1039,7 @@ $vendor_level = $vms_flow->level ?? 'NA';
         </div>
 
         <div class="text-center">
-            <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm" style="font-size: 1.1rem;"
+            <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm bn" style="font-size: 1.1rem;"
                 id="submit-btn">
                 <span id="spinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
                 <i class="fas fa-check-circle me-2" id="btn-icon"></i>
@@ -1051,6 +1048,7 @@ $vendor_level = $vms_flow->level ?? 'NA';
         </div>
     </form>
 </div>
+@endif
 <style>
     .material-header {
         background-color: #c9d64db0;

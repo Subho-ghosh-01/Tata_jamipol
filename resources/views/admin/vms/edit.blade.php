@@ -24,7 +24,7 @@ $user_id = Session::get('user_idSession');
     <script>window.location.href = '{{ url("admin/dashboard") }}';</script>
 @else
     <iframe id="myIframe" src="{{ route('vms_ifream.edit', [$vms->id, $user_id]) }}"
-        style="border:none; overflow:hidden; width:100%;" height="600" scrolling="no"></iframe>
+        style="border:none; overflow:hidden; width:100%;" height="500px" scrolling="yes"></iframe>
     <center>
         <div class="classic-10" id="iframe-loader"></div>
     </center></iframe>
@@ -131,12 +131,12 @@ $user_id = Session::get('user_idSession');
                 iframe.style.display = 'block';
 
                 // Adjust height
-                try {
-                    iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
-                } catch (e) {
-                    iframe.style.height = '1000px'; // fallback
-                    console.warn('Could not access iframe height:', e);
-                }
+                // try {
+                //     iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+                // } catch (e) {
+                //     iframe.style.height = '1000px'; // fallback
+                //     console.warn('Could not access iframe height:', e);
+                // }
             }
         });
     </script>

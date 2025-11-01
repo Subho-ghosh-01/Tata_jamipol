@@ -60,7 +60,11 @@ class PermitController extends Controller
         elseif (Session::get('user_typeSession') == 2) {
             $ordernumber = 'numeric';
             $orderval = 'required';
-            $enddt    = 'required|date|after:start_date|before_or_equal:order_validity|before_or_equal:'.$expectedEndDate;
+           // $enddt    = 'required|date|after:start_date|before_or_equal:order_validity|before_or_equal:'.$expectedEndDate;
+
+
+            $enddt = 'required|date|after_or_equal:start_date|before_or_equal:' . $expectedEndDate;
+
         }
 
         $request->validate([
@@ -869,7 +873,7 @@ $data = DB::table('Clms_gatepass')->where('name', 'like', '%' .  $entername  . '
             $data = VendorEmployeeDetails::where('userlogins_employee_details.employee', 'like', '%' .  $entername  . '%')
             ->select('userlogins_employee_details.*')->get();
         }
-        elseif (Session::get('user_typeSession') == 1 && Session::get('user_sub_typeSession') == 1) {
+        elseif (Session::get('user_typeSession') == 1 ) {
             $vendors = UserLogin::where('user_type',2)
                         ->where('division_id',Session::get('user_DivID_Session'))->get();
             $vendorArray = array();

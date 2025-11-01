@@ -27,8 +27,65 @@ class VMSController extends Controller
     {
         // $id = request()->get('user_id');
         $id = Session::get('user_idSession');
+        $vms_lists = DB::table('vehicle_pass')->orderBy('id', 'desc')->get();
         $divisions = Division::all();
-        return view('admin.vms.index', compact('divisions', 'id'));
+
+
+        if (Session::get('user_sub_typeSession') == 3) {
+            $approvedEmployee = $vms_lists->filter(
+                fn($item) =>
+                in_array(strtolower($item->status), ['approve', 'pending_with_safety', 'return']) &&
+                strtolower($item->apply_by_type) == '1' && strtolower($item->return_status == '')
+            );
+
+            // Approved Vendors
+            $approvedVendor = $vms_lists->filter(
+                fn($item) =>
+                in_array(strtolower($item->status), ['approve', 'pending_with_safety', 'return']) &&
+                strtolower($item->apply_by_type) == '2' && strtolower($item->return_status == '')
+            );
+
+            // Surrendered Employees & Vendors
+            $surrenderEmployee = $vms_lists->filter(
+                fn($item) =>
+                strtolower($item->status) == 'approve' &&
+                strtolower($item->apply_by_type) == '1' &&
+                in_array(strtolower($item->return_status), ['approve', 'pending_with_safety'])
+            );
+
+            $surrenderVendor = $vms_lists->filter(
+                fn($item) =>
+                strtolower($item->status) == 'approve' &&
+                strtolower($item->apply_by_type) == '2' &&
+                in_array(strtolower($item->return_status), ['approve', 'pending_with_safety'])
+            );
+        } else {
+            $approvedEmployee = $vms_lists->filter(
+                fn($item) =>
+                in_array(strtolower($item->status), ['approve', 'pending_with_safety', 'return']) &&
+                strtolower($item->apply_by_type) == '1' && strtolower($item->return_status == '') && $item->created_by == $id
+            );
+            $approvedVendor = $vms_lists->filter(
+                fn($item) =>
+                in_array(strtolower($item->status), ['approve', 'pending_with_safety', 'return']) &&
+                strtolower($item->apply_by_type) == '2' && strtolower($item->return_status == '') && $item->created_by == $id
+            );
+
+            $surrenderEmployee = $vms_lists->filter(
+                fn($item) =>
+                strtolower($item->status) == 'approve' &&
+                strtolower($item->apply_by_type) == '1' &&
+                in_array(strtolower($item->return_status), ['approve', 'pending_with_safety']) && $item->created_by == $id
+            );
+
+            $surrenderVendor = $vms_lists->filter(
+                fn($item) =>
+                strtolower($item->status) == 'approve' &&
+                strtolower($item->apply_by_type) == '2' &&
+                in_array(strtolower($item->return_status), ['approve', 'pending_with_safety']) && $item->created_by == $id
+            );
+        }
+        return view('admin.vms.index', compact('divisions', 'id', 'vms_lists', 'approvedEmployee', 'approvedVendor', 'surrenderEmployee', 'surrenderVendor'));
     }
     public function getVmsList()
     {
@@ -120,6 +177,24 @@ class VMSController extends Controller
         $fileName = 'vms_report_' . now()->format('Ymd_His') . '.xlsx';
 
         return Excel::download(new VMSExport($filters), $fileName);
+    }
+    // VehicleController.php
+    public function getVehicle($id)
+    {
+        $vehicle = DB::table('vehicle_pass')->find($id);
+
+        if (!$vehicle) {
+            return response()->json(['error' => 'Vehicle not found'], 404);
+        }
+
+        return response()->json([
+
+            'registration_date_to' => $vehicle->registraction_to,
+            'unique_id' => $vehicle->full_sl,
+            'insurance_valid_to' => $vehicle->insurance_valid_to,
+            'puc_valid_to' => $vehicle->puc_valid_to,
+            'license_valid_to' => $vehicle->license_valid_to
+        ]);
     }
 
 

@@ -53,6 +53,7 @@
             <a class="dropdown-item" href="{{route('admin.gate_pass')}}">Gate Pass</a>
             <a class="dropdown-item" href="{{route('admin.skill.index')}}">Skill</a>
             <a class="dropdown-item" href="{{route('admin.settings_master.index')}}">Setting</a>
+            <a class="dropdown-item" href="{{route('admin.silo_master.index')}}">Silo Master</a>
         </div>
     </li>
     @endif
@@ -159,6 +160,79 @@
         </div>
 </li>
 @endif
+
+<li class="nav-item dropdown">
+        <a class="nav-link @if(request()->url() == route('vms.index')) {{'active'}} @endif dropdown-toggle" href="" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Vehicle Gate Pass
+        </a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            
+           
+             
+            @if(Session::get('user_sub_typeSession') == 3  || (Session::get('vms_yes_no') == 'Yes' && (Session::get('vms_role') == 'Approver' || Session::get('vms_role') == 'Security' ||  Session::get('vms_role') == 'Requester'))) 
+   
+        <a class="nav-link @if(request()->url() == route('vms.index')) {{'active'}} @endif" href="{{url('vms')}}">Vehicle Gate Pass Management System </a>
+    
+     @endif
+     @if(Session::get('user_sub_typeSession') == '3' || Session::get('clm_role') == 'Safety_dept')
+    <a class="nav-link {{ request()->is('vms/vms_report/found') ? 'active' : '' }}" 
+       href="{{ url('vms/vms_report/found') }}">
+        Report/Dashboard
+    </a>
+@endif
+
+
+        </div>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link @if(request()->url() == route('vendor_mis.index')) {{'active'}} @endif dropdown-toggle" href="" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Vendor Safety MIS
+        </a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            
+           
+             
+            @if(Session::get('user_sub_typeSession') == 3  || (Session::get('vms_yes_no') == 'Yes' && (Session::get('vms_role') == 'Approver' || Session::get('vms_role') == 'Security' ||  Session::get('vms_role') == 'Requester'))) 
+   
+        <a class="nav-link @if(request()->url() == route('vendor_mis.index')) {{'active'}} @endif" href="{{url('vendor_mis')}}">Vendor Safety MIS </a>
+    
+     @endif
+     @if(Session::get('user_sub_typeSession') == '3' || Session::get('clm_role') == 'Safety_dept')
+    <a class="nav-link {{ request()->is('vendor_mis/mis_report/found') ? 'active' : '' }}" 
+       href="{{ url('vendor_mis/mis_report/found') }}">
+        Report/Dashboard
+    </a>
+@endif
+
+
+        </div>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link @if(request()->url() == route('vendor_mis.index')) {{'active'}} @endif dropdown-toggle" href="" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Silo Tanker Management
+        </a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            
+           
+             
+            @if(Session::get('user_sub_typeSession') == 3  || (Session::get('vms_yes_no') == 'Yes' && (Session::get('vms_role') == 'Approver' || Session::get('vms_role') == 'Security' ||  Session::get('vms_role') == 'Requester'))) 
+   
+        <a class="nav-link @if(request()->url() == route('vendor_silo.index')) {{'active'}} @endif" href="{{url('vendor_silo')}}">Silo Tanker Management</a>
+        
+<a class="nav-link {{ request()->is('vendor_silo/index_silo/add') ? 'active' : '' }}" 
+       href="{{ url('vendor_silo/index_silo/add') }}">
+       Silo Tanker Management (Daily Inspection)
+    </a>
+
+
+
+     @endif
+    
+
+
+
+        </div>
+    </li>
 
 
      <!--@if(Session::get('user_sub_typeSession') == '3'  || Session::get('clm_yes_no') == 'Yes') 

@@ -38,7 +38,7 @@
 
                     <div class="card-body p-4">
                         <div class="text-center mb-4">
-                            <a href="<?php echo e(URL::to('public/documents/daily_attendence_upload.xlsx')); ?>"
+                            <a href="<?php echo e(URL::to('documents/daily_attendence_upload.xlsx')); ?>"
                                 class="btn btn-outline-dark btn-sm">
                                 <i class="bi bi-download me-1"></i> Download Sample Excel File
                             </a>

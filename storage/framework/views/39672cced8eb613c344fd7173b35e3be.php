@@ -1,23 +1,24 @@
-<?php
-use App\Division;
-use App\UserLogin;
-?>
 
-
-
-<?php $__env->startSection('breadcrumbs'); ?>
-    <li class="breadcrumb-item"><a href="<?php echo e(route('admin.dashboard')); ?>">Dashboard</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Vehicle Management System / List</li>
-<?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('content'); ?>
+    <?php $__env->startSection('breadcrumbs'); ?>
+        <li class="breadcrumb-item"><a href="<?php echo e(route('admin.dashboard')); ?>">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Vehicle Management System / List</li>
+    <?php $__env->stopSection(); ?>
+    <!-- Bootstrap 5 JavaScript Bundle (includes Popper) -->
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <!-- DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
-    <?php if(Session::get('user_sub_typeSession') == 5): ?>
-        
-        <script>window.location.href = "<?php echo e(route('admin.dashboard')); ?>";</script>
-    <?php else: ?>
 
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <div class="container py-4">
+        <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2 mb-4">
                 <i class="fas fa-truck"></i> Vehicle Gate Pass Management System
             </h1>
@@ -32,197 +33,184 @@ use App\UserLogin;
                 </a>
             </div>
         </div>
-
-        <?php if(session()->has('message')): ?>
-            <div class="alert alert-success text-center">
-                <?php echo e(session('message')); ?>
-
-            </div>
-        <?php endif; ?>
-
-        <div class="table-responsive">
-            <table class="table table-striped table-sm" id="vms-table">
-                <thead>
-                    <tr>
-                        <th>#️⃣ Sl. No</th>
-                        <th>#️⃣ Full Sl.</th>
-                        <th>🙍‍♂️ Owner</th>
-                        <th>🔖 Reg. No</th>
-                        <th>🚙 Vehicle Type</th>
-                        <th>📌 Status</th>
-                        <th>🕒 Created</th>
-                        <th>🛠️ Action</th>
-                    </tr>
-                </thead>
-                <tbody id="vms-table-body">
-                    <!-- Dynamic rows filled by JS -->
-                </tbody>
-            </table>
-        </div>
-
-        <div id="data-loader" class="text-center my-4">
-            <div class="spin-loader"></div>
-            <div class="loader-text">Loading data, please wait...</div>
-        </div>
-
         
-        <style>
-            /* Loader Styles */
-            #data-loader {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
+        <ul class="nav nav-tabs mb-4" id="vmsTopTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved"
+                    type="button" role="tab">
+                    ✅ Approved
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="surrender-tab" data-bs-toggle="tab" data-bs-target="#surrender" type="button"
+                    role="tab">
+                    🔄 Surrender
+                </button>
+            </li>
+        </ul>
 
-            .spin-loader {
-                width: 60px;
-                height: 60px;
-                border: 6px solid rgba(0, 123, 255, 0.2);
-                border-top-color: #007bff;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-            }
+        <div class="tab-content" id="vmsTopTabsContent">
 
-            @keyframes spin {
-                0% {
-                    transform: rotate(0deg);
-                }
+            
+            <div class="tab-pane fade show active" id="approved" role="tabpanel">
+                <div class="card shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-light">
+                        <ul class="nav nav-pills card-header-pills " id="approvedSubTabs" role="tablist">
 
-                100% {
-                    transform: rotate(360deg);
-                }
-            }
+                            <?php if(Session::get('user_sub_typeSession') == '3' || Session::get('clm_role') == 'Safety_dept'): ?>
+                                
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="approved-employee-tab" data-bs-toggle="tab"
+                                        data-bs-target="#approved-employee" type="button">
+                                        👤 Employee
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="approved-vendor-tab" data-bs-toggle="tab"
+                                        data-bs-target="#approved-vendor" type="button">
+                                        🏢 Vendor
+                                    </button>
+                                </li>
+                            <?php elseif(Session::get('user_sub_typeSession') == '1'): ?>
+                                
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="approved-employee-tab" data-bs-toggle="tab"
+                                        data-bs-target="#approved-employee" type="button">
+                                        👤 Employee
+                                    </button>
+                                </li>
+                            <?php else: ?>
+                                
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="approved-vendor-tab" data-bs-toggle="tab"
+                                        data-bs-target="#approved-vendor" type="button">
+                                        🏢 Vendor
+                                    </button>
+                                </li>
+                            <?php endif; ?>
 
-            .loader-text {
-                margin-top: 12px;
-                font-size: 16px;
-                color: #333;
-                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-                animation: fadeBlink 1.5s ease-in-out infinite;
-            }
-
-            @keyframes fadeBlink {
-
-                0%,
-                100% {
-                    opacity: 1;
-                }
-
-                50% {
-                    opacity: 0;
-                }
-            }
-
-            /* Modal header gradient */
-            .modal-header.bg-gradient {
-                background: linear-gradient(45deg, #dc3545, #ff6f61);
-            }
-
-            .modal-content.shadow-lg {
-                box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
-                border-radius: 15px;
-            }
-
-            .modal-body {
-                font-size: 1.1rem;
-                color: #333;
-                text-align: center;
-                padding: 30px 20px;
-            }
-
-            .btn-pill {
-                border-radius: 50px !important;
-                padding: 8px 20px;
-                font-weight: 500;
-            }
-
-            /* Row highlight with watermark */
-            .return-approved-row {
-                position: relative;
-                background-color: #f8d7da !important;
-                /* light red */
-                overflow: hidden;
-            }
-
-            .return-approved-row::before {
-                content: "Document Expired";
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%) rotate(-25deg);
-                font-size: 2.5rem;
-                color: rgba(0, 0, 0, 0.08);
-                font-weight: 600;
-                pointer-events: none;
-                user-select: none;
-                white-space: nowrap;
-                z-index: 0;
-                letter-spacing: 4px;
-            }
-
-            /* Upload button icon animation */
-            .upload-btn i {
-                transition: all 0.3s ease;
-            }
-
-            .upload-btn:hover .upload-icon {
-                animation: bounceUpload 0.6s;
-            }
-
-            @keyframes bounceUpload {
-                0% {
-                    transform: translateY(0);
-                }
-
-                30% {
-                    transform: translateY(-5px);
-                }
-
-                60% {
-                    transform: translateY(2px);
-                }
-
-                100% {
-                    transform: translateY(0);
-                }
-            }
-        </style>
-
-        
-        <div class="modal fade" id="returnPassModal" tabindex="-1" aria-labelledby="returnPassModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content shadow-lg">
-                    <div class="modal-header bg-gradient text-white">
-                        <h5 class="modal-title w-100 text-center" id="returnPassModalLabel">🔄 Surrender Vehicle Pass</h5>
-                        <button type="button" class="btn-close btn-close-white position-absolute" style="right: 15px;"
-                            data-bs-dismiss="modal" aria-label="Close"></button>
+                        </ul>
                     </div>
-                    <div class="modal-body">
-                        <p>🚗 Are you sure you want to <strong>Surrender</strong> this vehicle pass?</p>
-                        <form id="return-pass-form" method="POST" style="margin: 0;">
+
+                    <div class="card-body p-3">
+                        <div class="tab-content">
+                            <?php if(Session::get('user_sub_typeSession') == '3' || Session::get('clm_role') == 'Safety_dept'): ?>
+                                <div class="tab-pane fade show active" id="approved-employee">
+                                    <?php echo $__env->make('admin.partials.pass_table', ['vmsData' => $approvedEmployee], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                                </div>
+                                <div class="tab-pane fade" id="approved-vendor">
+                                    <?php echo $__env->make('admin.partials.pass_table', ['vmsData' => $approvedVendor], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                                </div>
+                            <?php elseif(Session::get('user_sub_typeSession') == '1'): ?>
+                                <div class="tab-pane fade show active" id="approved-employee">
+                                    <?php echo $__env->make('admin.partials.pass_table', ['vmsData' => $approvedEmployee], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="tab-pane fade show active" id="approved-vendor">
+                                    <?php echo $__env->make('admin.partials.pass_table', ['vmsData' => $approvedVendor], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="tab-pane fade" id="surrender" role="tabpanel">
+                <div class="card shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-light">
+                        <ul class="nav nav-pills card-header-pills" id="surrenderSubTabs" role="tablist">
+
+                            <?php if(Session::get('user_sub_typeSession') == '3' || Session::get('clm_role') == 'Safety_dept'): ?>
+                                
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="surrender-employee-tab" data-bs-toggle="tab"
+                                        data-bs-target="#surrender-employee" type="button">
+                                        👤 Employee
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="surrender-vendor-tab" data-bs-toggle="tab"
+                                        data-bs-target="#surrender-vendor" type="button">
+                                        🏢 Vendor
+                                    </button>
+                                </li>
+                            <?php elseif(Session::get('user_sub_typeSession') == '1'): ?>
+                                
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="surrender-employee-tab" data-bs-toggle="tab"
+                                        data-bs-target="#surrender-employee" type="button">
+                                        👤 Employee
+                                    </button>
+                                </li>
+                            <?php else: ?>
+                                
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="surrender-vendor-tab" data-bs-toggle="tab"
+                                        data-bs-target="#surrender-vendor" type="button">
+                                        🏢 Vendor
+                                    </button>
+                                </li>
+                            <?php endif; ?>
+
+                        </ul>
+                    </div>
+
+                    <div class="card-body p-3">
+                        <div class="tab-content">
+                            <?php if(Session::get('user_sub_typeSession') == '3' || Session::get('clm_role') == 'Safety_dept'): ?>
+                                <div class="tab-pane fade show active" id="surrender-employee">
+                                    <?php echo $__env->make('admin.partials.pass_table_return', ['vmsData' => $surrenderEmployee], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                                </div>
+                                <div class="tab-pane fade" id="surrender-vendor">
+                                    <?php echo $__env->make('admin.partials.pass_table_return', ['vmsData' => $surrenderVendor], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                                </div>
+                            <?php elseif(Session::get('user_sub_typeSession') == '1'): ?>
+                                <div class="tab-pane fade show active" id="surrender-employee">
+                                    <?php echo $__env->make('admin.partials.pass_table_return', ['vmsData' => $surrenderEmployee], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="tab-pane fade show active" id="surrender-vendor">
+                                    <?php echo $__env->make('admin.partials.pass_table_return', ['vmsData' => $surrenderVendor], \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        
+        <div class="modal fade" id="returnPassModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content shadow-lg rounded-4">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title w-100 text-center">🔄 Surrender Vehicle Pass</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <p>Are you sure you want to <strong>surrender</strong> this vehicle pass?</p>
+                        <form id="return-pass-form" method="POST">
                             <?php echo csrf_field(); ?>
-                            <div class="form-group mt-3">
-                                <label for="surrenderReason">Reason for surrendering :</label>
-                                <textarea class="form-control" id="surrenderReason" name="surrender_reason" required rows="3"
-                                    placeholder="Please provide a reason for surrendering this pass..."></textarea>
+                            <div class="mb-3">
+                                <textarea class="form-control" id="surrenderReason" name="surrender_reason" required
+                                    rows="3" placeholder="Provide a reason..."></textarea>
                             </div>
-                            <input type="hidden" name="pass_id" id="returnPassId" value="">
-                            <div class="modal-footer justify-content-center pb-4">
-                                <button type="button" class="btn btn-outline-secondary btn-pill" data-bs-dismiss="modal">❌
-                                    Cancel</button>
-                                <button type="submit" class="btn btn-danger btn-pill">✅ Yes, Surrender</button>
+                            <input type="hidden" name="pass_id" id="returnPassId">
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                                    data-bs-dismiss="modal">❌ Cancel</button>
+                                <button type="submit" class="btn btn-danger rounded-pill px-4">✅ Yes, Surrender</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-
-    <?php endif; ?>
-
+    </div>
 <?php $__env->stopSection(); ?>
-
 
 <?php $__env->startSection('scripts'); ?>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -289,140 +277,28 @@ use App\UserLogin;
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const loader = document.getElementById('data-loader');
-            fetch('<?php echo e(route("admin.vms.list")); ?>')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok' && Array.isArray(data.data)) {
-                        const tableBody = document.getElementById('vms-table-body');
-                        let rows = '';
-                        loader.style.display = 'none'; // Hide loader
-
-                        // Helper: strip time part of Date (set time to 00:00:00)
-                        function stripTime(date) {
-                            return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                        }
-
-                        const today = stripTime(new Date());
-                        const expiryThresholdDays = 15;
-
-                        // Calculate difference in days (date1 - date2)
-                        function daysDiff(date1, date2) {
-                            const diffTime = date1.getTime() - date2.getTime();
-                            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                        }
-
-                        data.data.forEach((item, index) => {
-                            const statusLower = item.status?.toLowerCase() || '';
-                            const statusreturnLower = item.return_status?.toLowerCase() || '';
-
-                            // Parse expiry dates and strip time
-                            const licenseExpiry = item.license_valid_to ? stripTime(new Date(item.license_valid_to)) : null;
-                            const insuranceExpiry = item.insurance_valid_to ? stripTime(new Date(item.insurance_valid_to)) : null;
-                            const pucExpiry = item.puc_valid_to ? stripTime(new Date(item.puc_valid_to)) : null;
-
-                            let expiryMessages = [];
-
-                            // Check expiry of each document
-                            function checkExpiryDate(dateObj, docName) {
-                                if (!dateObj) return;
-                                if (dateObj < today) {
-                                    expiryMessages.push(`${docName} Expired ❌`);
-                                } else {
-                                    const diff = daysDiff(dateObj, today);
-                                    if (diff > 0 && diff <= expiryThresholdDays) {
-                                        expiryMessages.push(`${docName} Expires Soon ⚠️`);
-                                    }
-                                }
-                            }
-
-                            checkExpiryDate(licenseExpiry, 'License');
-                            checkExpiryDate(insuranceExpiry, 'Insurance');
-                            checkExpiryDate(pucExpiry, 'PUC');
-
-                            // Build status label string
-                            let statusLabel = '';
-
-                            if (expiryMessages.length > 0) {
-                                statusLabel = expiryMessages.join(', ');
-                            } else if (statusreturnLower === 'approve' || statusreturnLower === 'approved') {
-                                statusLabel = 'Surrender 🔁';
-                            } else if (item.status) {
-                                statusLabel = item.status.charAt(0).toUpperCase() + item.status.slice(1) +
-                                    (statusLower === 'approve' ? ' ✅' :
-                                        statusLower === 'return' ? ' ❌' :
-                                            statusLower === 'pending_with_safety' ? ' ⏳' : '');
-                            }
-
-                            // Action button classes and labels
-                            const actionClass =
-                                statusLower === 'approve' ? 'btn-success' :
-                                    statusLower === 'return' ? 'btn-danger' :
-                                        statusLower === 'pending_with_safety' ? 'btn-warning' : 'btn-secondary';
-
-                            const actionLabel =
-                                statusLower === 'approve' ? '📄 Details' :
-                                    statusLower === 'return' ? '✏️ Edit' :
-                                        statusLower === 'pending_with_safety' ? '⏳ Action' : '🔘 Action';
-
-                            // Surrender button
-                            let surrenderButton = '';
-                            if (statusLower === 'approve' && (statusreturnLower === '' || statusreturnLower === 'return')) {
-                                surrenderButton = `
-                                                                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            data-toggle="modal" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            data-target="#returnPassModal" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            data-id="${item.id}">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            🔁 Surrender
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </button>`;
-                            } else if (statusreturnLower !== '') {
-                                surrenderButton = `
-                                                                                        <a href="/vms/edit_return/${item.id}">
-                                                                                            <button class="btn btn-outline-danger btn-sm rounded-pill px-3 ms-2 ">
-                                                                                                🔁 Surrender Details
-                                                                                            </button>
-                                                                                        </a>`;
-                            }
-
-                            rows += `
-                                                                                    <tr>
-                                                                                        <td>${index + 1}</td>
-                                                                                        <td>${item.full_sl}</td>
-                                                                                        <td>${item.vehicle_owner_name || ''}</td>
-                                                                                        <td>${item.vehicle_registration_no || ''}</td>
-                                                                                        <td>${item.vehicle_type || ''}</td>
-                                                                                        <td>${statusLabel}</td>
-                                                                                        <td>${item.created_at || ''}</td>
-                                                                                        <td>
-                                                                                            <a href="/vms/${item.id}/edit">
-                                                                                                <button class="btn btn-sm rounded-pill px-3 ms-2 ${actionClass}">
-                                                                                                    ${actionLabel}
-                                                                                                </button>
-                                                                                            </a>
-                                                                                            ${surrenderButton}
-                                                                                            <a href="/vms/edit_driver_details/${item.id}">
-                                                                                            <button class="btn btn-outline-primary btn-sm rounded-pill px-3 ms-2 ">
-                                                                                                Edit Driver Details
-                                                                                            </button>
-                                                                                        </a>
-                                                                                        </td>
-                                                                                    </tr>`;
-                        });
-
-                        tableBody.innerHTML = rows;
-                        $('#vms-table').DataTable();
-                    } else {
-                        console.warn('No data or invalid format');
+        $(document).ready(function () {
+            $('table.vmsDataTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50, 100],
+                order: [[0, 'asc']], // default sort by first column
+                language: {
+                    search: "🔍 Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    paginate: {
+                        previous: "⬅ Prev",
+                        next: "Next ➡"
                     }
-                })
-                .catch(err => console.error('Error fetching data:', err));
+                }
+            });
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
+                $.fn.dataTable
+                    .tables({ visible: true, api: true })
+                    .columns.adjust()
+                    .responsive.recalc();
+            });
         });
-
-
-
-
-
     </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('admin.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\8.4 php\htdocs\jamipol\resources\views/admin/vms/index.blade.php ENDPATH**/ ?>

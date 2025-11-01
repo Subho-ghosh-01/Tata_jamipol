@@ -320,7 +320,7 @@ class GatePassCLMSController extends Controller
                 ->whereIN('return_status', ['Pending_exit', 'completed_exit'])
                 ->orderBy('Clms_gatepass.id', 'DESC')->get();
 
-            $gatepasss_shift = DB::table('Clms_gatepass')->orderBy('id', 'DESC')->get();
+            $gatepasss_shift = DB::table('Clms_gatepass')->where('created_by', Session::get('user_idSession'))->orderBy('id', 'DESC')->get();
 
         }
 
@@ -443,10 +443,12 @@ class GatePassCLMSController extends Controller
 
         if (Session::get('user_sub_typeSession') == 3) {
             $divisions = Division::get();
+            $vendors = UserLogin::where('user_type', 2)->get();
 
         } else {
             $users = UserLogin::where('id', Session::get('user_idSession'))->first();
             $divisions = Division::where('id', @$users->division_id)->get();
+            $vendors = UserLogin::Where('id', Session::get('user_idSession'))->where('user_type', 2)->get();
         }
         $report = "";
         if ($request->input('divi_id') <> '' || $request->input('dept_id') <> '' || $request->input('fromdate') <> '' && $request->input('todate') <> '') {
@@ -457,37 +459,59 @@ class GatePassCLMSController extends Controller
                 ->whereBetween('created_datetime', [$start, $end])->get();
             //$report = DB::table('Clms_gatepass')->whereBetween('created_datetime',[$start,$end])->get();
         }
-        return view('admin.gatepass_approvals.clms_report', compact('report', 'divisions'));
+        return view('admin.gatepass_approvals.clms_report', compact('report', 'divisions', 'vendors'));
 
         //return view('RequestVGatepass');
     }
 
     public function GetReport(Request $request)
     {
-        // show all the 
-
+        // Load divisions and vendors based on user type
         if (Session::get('user_sub_typeSession') == 3) {
             $divisions = Division::get();
+            $vendors = UserLogin::where('user_type', 2)->get();
         } else {
-            $users = UserLogin::where('id', Session::get('user_idSession'))->first();
-            $divisions = Division::where('id', @$users->division_id)->get();
+            $user = UserLogin::find(Session::get('user_idSession'));
+            $divisions = Division::where('id', @$user->division_id)->get();
+            $vendors = UserLogin::where('id', Session::get('user_idSession'))
+                ->where('user_type', 2)
+                ->get();
         }
-        if ($request->input('divi_id') <> '' && $request->input('dept_id') == 'ALL' && $request->input('fromdate') <> '' && $request->input('todate') <> '') {
-            $start = Carbon::parse($request->input('fromdate'))->startOfDay()->toDateTimeString();
-            $end = Carbon::parse($request->input('todate'))->endOfDay()->toDateTimeString();
-            $report = DB::table('Clms_gatepass')->where('division', $request->input('divi_id'))->whereBetween('created_datetime', [$start, $end])->get();
-            return view('admin.gatepass_approvals.clms_report', compact('report', 'divisions'));
-        } elseif ($request->input('divi_id') <> '' && $request->input('dept_id') != 'ALL' && $request->input('fromdate') <> '' && $request->input('todate') <> '') {
-            $start = Carbon::parse($request->input('fromdate'))->startOfDay()->toDateTimeString();
-            $end = Carbon::parse($request->input('todate'))->endOfDay()->toDateTimeString();
-            $report = DB::table('Clms_gatepass')->where('division', $request->input('divi_id'))->where('department', $request->input('dept_id'))->whereBetween('created_datetime', [$start, $end])->get();
-            return view('admin.gatepass_approvals.clms_report', compact('report', 'divisions'));
-        } elseif ($request->input('fromdate') <> '' && $request->input('todate') <> '') {
-            $start = Carbon::parse($request->input('fromdate'))->startOfDay()->toDateTimeString();
-            $end = Carbon::parse($request->input('todate'))->endOfDay()->toDateTimeString();
-            $report = DB::table('Clms_gatepass')->whereBetween('created_datetime', [$start, $end])->get();
-            return view('admin.gatepass_approvals.clms_report', compact('report', 'divisions'));
+
+        // Date filters
+        $from = $request->input('fromdate');
+        $to = $request->input('todate');
+        $divi_id = $request->input('divi_id');
+        $dept_id = $request->input('dept_id');
+        $vendor_id = $request->input('vendor_id');
+
+        if ($from && $to) {
+            $start = Carbon::parse($from)->startOfDay()->toDateTimeString();
+            $end = Carbon::parse($to)->endOfDay()->toDateTimeString();
+
+            // Build query
+            $query = DB::table('Clms_gatepass')->whereBetween('created_datetime', [$start, $end]);
+
+            if (!empty($divi_id)) {
+                $query->where('division', $divi_id);
+            }
+
+            if (!empty($dept_id) && $dept_id != 'ALL') {
+                $query->where('department', $dept_id);
+            }
+
+            // 🔹 New condition: filter by vendor if vendor_id is passed
+            if (!empty($vendor_id)) {
+                $query->where('created_by', $vendor_id);
+            }
+
+            $report = $query->get();
+
+            return view('admin.gatepass_approvals.clms_report', compact('report', 'divisions', 'vendors'));
         }
+
+        // If no date filter, return empty report or redirect back
+        return back()->with('error', 'Please select From and To date.');
     }
 
     public function edit($vgpid)
@@ -1704,7 +1728,7 @@ class GatePassCLMSController extends Controller
         if ($request->gp_status) {
             $gp_status1 = 'Renew';
             $emp_pno = $request->employeep_no;
-            $emp_pno_sl = $request->emploeep_no_sl;
+            $emp_pno_sl = $request->employeep_no_sl;
 
         } else {
             $gp_status1 = 'New';
@@ -1730,6 +1754,16 @@ class GatePassCLMSController extends Controller
 
 
 
+        }
+
+
+        $fdate = date('Y-m-d', strtotime($date));
+
+        if ($fdate > $till_date) {
+
+            return back()->withErrors(['valid_till' => 'Valid Till date must be greater than Valid From date.'])
+                ->withInput();
+            //return back()->with('message', 'Pls check till date is not lower than from date');
         }
 
         $clms = DB::table('Clms_gatepass')->insert([
@@ -1849,6 +1883,7 @@ class GatePassCLMSController extends Controller
 
         // Convert and map to status codes
         $attendance = [];
+        $holidays = []; // ✅ Initialize this variable before using it
         foreach ($rawData as $entry) {
             if (stripos($entry->Present, 'Full') !== false) {
                 $attendance[$entry->day] = 'P';
@@ -1872,16 +1907,36 @@ class GatePassCLMSController extends Controller
     }
 
 
-    public function updateAttendance($day, $newStatus, $empPno, $month, $year)
+    public function updateAttendance(Request $request, $day, $newStatus, $empPno, $month, $year, $otHours = '')
     {
         try {
             // Build date
             $date = Carbon::createFromDate($year, $month, $day)->format('Y-m-d');
 
+            // Validate OT hours if status is OT
+            if ($newStatus === 'OT') {
+                if (empty($otHours) || $otHours < 0.5 || $otHours > 2) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid OT hours. Please enter between 0.5 to 2 hours.'
+                    ], 400);
+                }
+            }
+
+            $name_emp = DB::table('Clms_gatepass')->where('emp_pno', $empPno)->select('name', 'division')->first();
+            $name = $name_emp->name ?? '';
+            $div = $name_emp->division ?? '';
+
+            // Prepare update data
+            $updateData = ['Present' => $newStatus];
+            if ($newStatus === 'OT' && !empty($otHours)) {
+                $updateData['extra_hours'] = $otHours;
+            }
+
             // Update or insert attendance log
             DB::table('AttendanceLog')->updateOrInsert(
-                ['PNo' => $empPno, 'date' => $date],
-                ['Present' => $newStatus]
+                ['PNo' => $empPno, 'date' => $date, 'name' => $name, 'division_id' => $div],
+                $updateData
             );
 
             // If leave type, adjust balance
@@ -2040,7 +2095,84 @@ class GatePassCLMSController extends Controller
         return view('admin.gatepass_approvals.daily_attendence_view', compact('attendanceLogs', 'pnoStats', 'fromDate', 'toDate', 'attendanceTaken', 'today'));
     }
 
+    public function bonus_calculation2(Request $request)
+    {
+
+        @$fromDate = $request->input('fromdate', now()->format('Y-m-01'));  // Default: first day of current month in Y-m-d format
+        @$toDate = $request->input('todate', now()->format('Y-m-d'));  // Default: today's date in Y-m-d format
+        $fromDate = \Carbon\Carbon::parse($fromDate)->format('Y-m-d');
+        $toDate = \Carbon\Carbon::parse($toDate)->format('Y-m-d');
+        $today = Carbon::today()->format('Y-m-d');
+
+        $attendanceLogs = Attendence_upload::whereIn('id', function ($query) use ($fromDate, $toDate) {
+            $query->select(DB::raw('MAX(id) as total'))
+                ->from('AttendanceLog')
+                ->whereBetween('date', [@$fromDate, @$toDate])
+                ->groupBy('PNo', 'division_id');
+        })->get();
+
+
+        $pnoStats = DB::table('AttendanceLog')
+            ->select(
+                'PNo',
+                DB::raw('COUNT(*) as total_days'),
+                DB::raw('SUM(CAST(extra_hours AS FLOAT)) as total_extra_hours')
+            )
+            ->where('Present', '!=', 'ABSENT')
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->groupBy('PNo', 'division_id')
+            ->get()
+            ->keyBy('PNo');
+
+        $attendanceTaken = DB::table('AttendanceLog')
+            ->whereDate('date', $today)
+            ->exists();
+
+        return view('admin.gatepass_approvals.bonus_calculation', compact('attendanceLogs', 'pnoStats', 'fromDate', 'toDate', 'attendanceTaken', 'today'));
+    }
+
+
+
+    public function ot_calculation2(Request $request)
+    {
+
+        @$fromDate = $request->input('fromdate', now()->format('Y-m-01'));  // Default: first day of current month in Y-m-d format
+        @$toDate = $request->input('todate', now()->format('Y-m-d'));  // Default: today's date in Y-m-d format
+        $fromDate = \Carbon\Carbon::parse($fromDate)->format('Y-m-d');
+        $toDate = \Carbon\Carbon::parse($toDate)->format('Y-m-d');
+        $today = Carbon::today()->format('Y-m-d');
+
+        $attendanceLogs = Attendence_upload::whereIn('id', function ($query) use ($fromDate, $toDate) {
+            $query->select(DB::raw('MAX(id) as total'))
+                ->from('AttendanceLog')
+                ->whereBetween('date', [@$fromDate, @$toDate])
+                ->groupBy('PNo', 'division_id');
+        })->get();
+
+
+        $pnoStats = DB::table('AttendanceLog')
+            ->select(
+                'PNo',
+                DB::raw('COUNT(*) as total_days'),
+                DB::raw('SUM(CAST(extra_hours AS FLOAT)) as total_extra_hours')
+            )
+            ->where('Present', '!=', 'ABSENT')
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->groupBy('PNo', 'division_id')
+            ->get()
+            ->keyBy('PNo');
+
+        $attendanceTaken = DB::table('AttendanceLog')
+            ->whereDate('date', $today)
+            ->exists();
+
+        return view('admin.gatepass_approvals.ot_calculation', compact('attendanceLogs', 'pnoStats', 'fromDate', 'toDate', 'attendanceTaken', 'today'));
+    }
+
+
 }
+
+
 /*public function index1(){
          // $divisions = Division::all();
  //$gatepasss = DB::table('visitor_gate_pass')->orderBy('id','desc')->get();

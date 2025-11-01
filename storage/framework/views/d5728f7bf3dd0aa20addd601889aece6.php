@@ -15,10 +15,10 @@ use App\UserLogin;
     <?php $__env->startSection('content'); ?>
 
         <!-- ALTER TABLE userlogins 
-                                                                    ADD 
-                                                                        power_cutting VARCHAR (50) NULL,
-                                                                        power_getting VARCHAR (50) NULL,
-                                                                        confined_space VARCHAR (50) NULL; -->
+                                                                                                            ADD 
+                                                                                                                power_cutting VARCHAR (50) NULL,
+                                                                                                                power_getting VARCHAR (50) NULL,
+                                                                                                                confined_space VARCHAR (50) NULL; -->
 
         <form action="<?php echo e(route('admin.user.store')); ?>" method="post" autocomplete="off">
             <?php echo csrf_field(); ?>
@@ -165,6 +165,8 @@ use App\UserLogin;
                             <option value="security"> Security</option>
                             <option value="Executing_agency"> Executing Agency</option>
                             <option value="Account_dept"> Account Dept</option>
+                            <option value="Inclusion"> Inclusion </option>
+
                         </select>
                     </div>
                 </div>
@@ -612,9 +614,9 @@ use App\UserLogin;
                 </div>
                 <?php else: ?>
                 <?php 
-                                                                            $division = Division::where('id', Session::get('user_DivID_Session'))->get();
+                                                                                                                    $division = Division::where('id', Session::get('user_DivID_Session'))->get();
             $department = Department::where('division_id', $division[0]->id)->get();
-                                                                        ?>
+                                                                                                                ?>
                 <div class="form-group row">
                     <label for="form-control-label" class="col-sm-2 col-form-label">Division<span
                             style="color:red;font-size: 20px;">*</span></label>
@@ -790,13 +792,13 @@ use App\UserLogin;
             var count = $(".remove_tr").length + 1;
             // console.log(count);
             $('#append_gatepass').append(`<tr class="gatepass">
-                                                    <td><input type="text" class="form-control" name="employee[]"></td>
-                                                    <td><input type="text" class="form-control" name="gatepass[]"></td>
-                                                    <td><input type="text" class="form-control" name="designation[]"></td>
-                                                    <td><input type="text" class="form-control" name="age[]"></td> 
-                                                    <td><input type="date" class="form-control start_date" name="expirydate[]"  value=""></td>
+                                                                        <td><input type="text" class="form-control" name="employee[]"></td>
+                                                                        <td><input type="text" class="form-control" name="gatepass[]"></td>
+                                                                        <td><input type="text" class="form-control" name="designation[]"></td>
+                                                                        <td><input type="text" class="form-control" name="age[]"></td> 
+                                                                        <td><input type="date" class="form-control start_date" name="expirydate[]"  value=""></td>
 
-                                                </tr>`);
+                                                                    </tr>`);
         });
 
         //Remove Top Click
@@ -814,47 +816,47 @@ use App\UserLogin;
             // i++;
             // console.log(count);
             $('#dataview').append(`<tr class="appendrow">
-                                            <td><input type="text" class="form-control" name="supervisor_ven[]"></td>
-                                            <td><input type="text" class="form-control" name="electrical_license_ven[]"></td>
-                                            <td><input type="date" class="form-control" name="license_validity_ven[]"></td>
-                                            <td><table style="width: 180px;">
-                                                    <tr><td><span>132KV</span></td>
-                                                        <td><input type="radio" name="v132kv_ven[`+ count + `]" checked value="yes">&nbsp; Yes
-                                                        <input type="radio" name="v132kv_ven[`+ count + `]" value="no">&nbsp; No
-                                                        </td>
-                                                    <tr>
-                                                    <tr><td><span>33KV</span></td>
-                                                        <td><input type="radio" name="v33kv_ven[`+ count + `]" checked value="yes">&nbsp; Yes
-                                                        <input type="radio" name="v33kv_ven[`+ count + `]" value="no">&nbsp; No
-                                                        </td>
-                                                    <tr><td><span>11KV</span></td>
-                                                        <td><input type="radio" name="v11kv_ven[`+ count + `]" checked value="yes">&nbsp; Yes
-                                                        <input type="radio" name="v11kv_ven[`+ count + `]" value="no">&nbsp; No
-                                                        </td>
-                                                    <tr><td><span>LT</span></td>
-                                                        <td><input type="radio" name="vlt_ven[`+ count + `]" checked value="yes">&nbsp; Yes
-                                                        <input type="radio" name="vlt_ven[`+ count + `]" value="no">&nbsp; No
-                                                        </td>
-                                                    <tr>
-                                                </table>
-                                            </td>
-                                            <td>
-                                                <label class="form-check-label">
-                                                    <input type="radio" class="" name="issue_power_ven[`+ count + `]"  checked value="yes">&nbsp; Yes
-                                                </label>
-                                                <label class="form-check-label">
-                                                    <input type="radio" class=""  name="issue_power_ven[`+ count + `]" value="no">&nbsp; No  
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <label class="form-check-label">
-                                                    <input type="radio" class="" name="rec_power_ven[`+ count + `]" checked value="yes">&nbsp; Yes
-                                                </label>
-                                                <label class="form-check-label">
-                                                    <input type="radio" class=""  name="rec_power_ven[`+ count + `]" value="no">&nbsp; No  
-                                                </label>
-                                            </td>
-                                        </tr>`);
+                                                                <td><input type="text" class="form-control" name="supervisor_ven[]"></td>
+                                                                <td><input type="text" class="form-control" name="electrical_license_ven[]"></td>
+                                                                <td><input type="date" class="form-control" name="license_validity_ven[]"></td>
+                                                                <td><table style="width: 180px;">
+                                                                        <tr><td><span>132KV</span></td>
+                                                                            <td><input type="radio" name="v132kv_ven[`+ count + `]" checked value="yes">&nbsp; Yes
+                                                                            <input type="radio" name="v132kv_ven[`+ count + `]" value="no">&nbsp; No
+                                                                            </td>
+                                                                        <tr>
+                                                                        <tr><td><span>33KV</span></td>
+                                                                            <td><input type="radio" name="v33kv_ven[`+ count + `]" checked value="yes">&nbsp; Yes
+                                                                            <input type="radio" name="v33kv_ven[`+ count + `]" value="no">&nbsp; No
+                                                                            </td>
+                                                                        <tr><td><span>11KV</span></td>
+                                                                            <td><input type="radio" name="v11kv_ven[`+ count + `]" checked value="yes">&nbsp; Yes
+                                                                            <input type="radio" name="v11kv_ven[`+ count + `]" value="no">&nbsp; No
+                                                                            </td>
+                                                                        <tr><td><span>LT</span></td>
+                                                                            <td><input type="radio" name="vlt_ven[`+ count + `]" checked value="yes">&nbsp; Yes
+                                                                            <input type="radio" name="vlt_ven[`+ count + `]" value="no">&nbsp; No
+                                                                            </td>
+                                                                        <tr>
+                                                                    </table>
+                                                                </td>
+                                                                <td>
+                                                                    <label class="form-check-label">
+                                                                        <input type="radio" class="" name="issue_power_ven[`+ count + `]"  checked value="yes">&nbsp; Yes
+                                                                    </label>
+                                                                    <label class="form-check-label">
+                                                                        <input type="radio" class=""  name="issue_power_ven[`+ count + `]" value="no">&nbsp; No  
+                                                                    </label>
+                                                                </td>
+                                                                <td>
+                                                                    <label class="form-check-label">
+                                                                        <input type="radio" class="" name="rec_power_ven[`+ count + `]" checked value="yes">&nbsp; Yes
+                                                                    </label>
+                                                                    <label class="form-check-label">
+                                                                        <input type="radio" class=""  name="rec_power_ven[`+ count + `]" value="no">&nbsp; No  
+                                                                    </label>
+                                                                </td>
+                                                            </tr>`);
         });
 
         //Remove 

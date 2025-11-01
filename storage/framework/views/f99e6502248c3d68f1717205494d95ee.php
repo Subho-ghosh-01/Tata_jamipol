@@ -21,13 +21,13 @@ use App\UserLogin;
 
     <?php $__env->startSection('content'); ?>
 
-
-
-        <iframe id="myIframe" src="<?php echo e(route('vms_ifream.create', ['user_id' => $id])); ?>" style="border: none; overflow: hidden;"
-            width="101%" height="" scrolling="no"></iframe>
         <center>
             <div class="classic-10" id="iframe-loader"></div>
-        </center></iframe>
+        </center>
+
+        <iframe id="myIframe" src="<?php echo e(route('vms_ifream.create', ['user_id' => $id])); ?>" style="border: none; overflow: hidden;"
+            width="101%" height="500px" scrolling="yes"></iframe>
+
 
         <style>
             .classic-10 {
@@ -136,22 +136,22 @@ use App\UserLogin;
         };
 
         // Function to update iframe height based on content
-        function updateIframeHeight() {
-            try {
-                const body = iframe.contentWindow.document.body;
-                const html = iframe.contentWindow.document.documentElement;
-                const height = Math.max(
-                    body.scrollHeight,
-                    body.offsetHeight,
-                    html.clientHeight,
-                    html.scrollHeight,
-                    html.offsetHeight
-                );
-                iframe.style.height = height + 50 + 'px';
-            } catch (e) {
-                console.warn('Could not access iframe content. Possibly cross-origin.');
-            }
-        }
+        // function updateIframeHeight() {
+        //     try {
+        //         const body = iframe.contentWindow.document.body;
+        //         const html = iframe.contentWindow.document.documentElement;
+        //         const height = Math.max(
+        //             body.scrollHeight,
+        //             body.offsetHeight,
+        //             html.clientHeight,
+        //             html.scrollHeight,
+        //             html.offsetHeight
+        //         );
+        //         iframe.style.height = height + 'px';
+        //     } catch (e) {
+        //         console.warn('Could not access iframe content. Possibly cross-origin.');
+        //     }
+        // }
 
         // Listen for messages from iframe
         window.addEventListener('message', function (e) {

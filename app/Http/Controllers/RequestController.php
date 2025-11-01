@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Request;
-
+use Illuminate\Http\Request;
 use App\Division;
 use App\Section;
 use App\Job;
@@ -29,9 +29,9 @@ class RequestController extends Controller
     public function create()
     {
         $divisions = Division::all();
-        $users = UserLogin::where('user_sub_type', 2)->get();
-        $jobs = Job::all();
-        return view('admin.request_permits.create', compact('divisions', 'jobs', 'users'));
+        $users     = UserLogin::where('user_sub_type',2)->get();
+        $jobs      = Job::all();
+        return view('admin.request_permits.create',compact('divisions','jobs','users'));
     }
 
     /**
@@ -92,91 +92,88 @@ class RequestController extends Controller
 
 
     //get Section Details Ajax call
-    public function getSectionDetails(Request $request, $id)
-    {
-        if ($request->ajax()) {
-            return Section::where('division_id', $id)->get();
+    public function getSectionDetails(Request $request,$id){
+        if($request->ajax()){
+            return Section::where('division_id',$id)->get();
         }
     }
 
-
-    public function getSwpNumber(Request $request, $id)
-    {
-        $toReturn = Job::where('id', $id)->get();
+    
+    public function getSwpNumber(Request $request,$id){
+        $toReturn = Job::where('id',$id)->get();
         return $toReturn;
 
     }
+    
+    public function getSixDirectionalView(Request $request,$id){
 
-    public function getSixDirectionalView(Request $request, $id)
-    {
-
-        $hazared_all = Job::where('jobs.id', $id)
-            ->leftjoin('hazardes', 'jobs.id', '=', 'hazardes.job_id')
-            ->select('jobs.*', 'hazardes.*')->get();
-
+        $hazared_all = Job::where('jobs.id',$id)
+                        ->leftjoin ('hazardes','jobs.id','=','hazardes.job_id')
+                        ->select('jobs.*','hazardes.*')->get();
+    
         $toReturn = "";
         $toReturn .= "<table class='table'>";
         $toReturn .= "<tbody>";
-        $toReturn .= "<tr>";
-        $toReturn .= "<th>Direction</th>";
-        $toReturn .= "<th>Hazareds</th>";
-        $toReturn .= "<th>Precaution</th>";
-        $toReturn .= "</tr>";
+                $toReturn .= "<tr>";
+                    $toReturn .= "<th>Direction</th>";
+                    $toReturn .= "<th>Hazareds</th>";
+                    $toReturn .= "<th>Precaution</th>";
+                $toReturn .= "</tr>";
 
-        foreach ($hazared_all as $key => $value) {
-            if ($hazared_all[$key]->direction == 'North') {
-                $toReturn .= "<tr>";
-                $toReturn .= "<td>North</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->hazarde . "</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->precaution . "</td>";
-                $toReturn .= "</tr>";
+            foreach($hazared_all as $key => $value){
+                if($hazared_all[$key]->direction == 'North'){
+                    $toReturn .= "<tr>";
+                            $toReturn .= "<td>North</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->hazarde."</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->precaution."</td>";
+                    $toReturn .= "</tr>";
+                }
             }
-        }
-        foreach ($hazared_all as $key => $value) {
-            if ($hazared_all[$key]->direction == 'South') {
-                $toReturn .= "<tr>";
-                $toReturn .= "<td>South</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->hazarde . "</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->precaution . "</td>";
-                $toReturn .= "</tr>";
+            foreach($hazared_all as $key => $value){
+                if($hazared_all[$key]->direction == 'South'){
+                    $toReturn .= "<tr>";
+                            $toReturn .= "<td>South</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->hazarde."</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->precaution."</td>";
+                    $toReturn .= "</tr>";
+                }
             }
-        }
-        foreach ($hazared_all as $key => $value) {
-            if ($hazared_all[$key]->direction == 'East') {
-                $toReturn .= "<tr>";
-                $toReturn .= "<td>East</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->hazarde . "</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->precaution . "</td>";
-                $toReturn .= "</tr>";
+            foreach($hazared_all as $key => $value){
+                if($hazared_all[$key]->direction == 'East'){
+                        $toReturn .= "<tr>";
+                            $toReturn .= "<td>East</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->hazarde."</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->precaution."</td>";
+                        $toReturn .= "</tr>";
+                }
             }
-        }
-        foreach ($hazared_all as $key => $value) {
-            if ($hazared_all[$key]->direction == 'West') {
-                $toReturn .= "<tr>";
-                $toReturn .= "<td>West</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->hazarde . "</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->precaution . "</td>";
-                $toReturn .= "</tr>";
+            foreach($hazared_all as $key => $value){
+                if($hazared_all[$key]->direction == 'West'){
+                        $toReturn .= "<tr>";
+                            $toReturn .= "<td>West</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->hazarde."</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->precaution."</td>";
+                        $toReturn .= "</tr>";
+                }
             }
-        }
-        foreach ($hazared_all as $key => $value) {
-            if ($hazared_all[$key]->direction == 'Top') {
-                $toReturn .= "<tr>";
-                $toReturn .= "<td>Top</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->hazarde . "</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->precaution . "</td>";
-                $toReturn .= "</tr>";
+            foreach($hazared_all as $key => $value){
+                if($hazared_all[$key]->direction == 'Top'){
+                        $toReturn .= "<tr>";
+                            $toReturn .= "<td>Top</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->hazarde."</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->precaution."</td>";
+                        $toReturn .= "</tr>";
+                }
             }
-        }
-        foreach ($hazared_all as $key => $value) {
-            if ($hazared_all[$key]->direction == 'Buttom') {
-                $toReturn .= "<tr>";
-                $toReturn .= "<td>Buttom</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->hazarde . "</td>";
-                $toReturn .= "<td>" . $hazared_all[$key]->precaution . "</td>";
-                $toReturn .= "</tr>";
+            foreach($hazared_all as $key => $value){
+                if($hazared_all[$key]->direction == 'Buttom'){
+                        $toReturn .= "<tr>";
+                            $toReturn .= "<td>Buttom</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->hazarde."</td>";
+                            $toReturn .= "<td>".$hazared_all[$key]->precaution."</td>";
+                        $toReturn .= "</tr>";
+                }
             }
-        }
 
         $toReturn .= "</tbody>";
         $toReturn .= "</table>";

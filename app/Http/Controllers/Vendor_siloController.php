@@ -26,30 +26,27 @@ class Vendor_siloController extends Controller
 
     public function index()
     {
-        // $id = request()->get('user_id');
         $id = Session::get('user_idSession');
         $divisions = Division::all();
-        return view('admin.vendor_silo.index', compact('divisions', 'id'));
-    }
-    public function getVmsList()
-    {
-        $query = DB::table('vendor_mis')
-            ->leftJoin('divisions', 'vendor_mis.division_id', '=', 'divisions.id')
-            ->leftJoin('departments', 'vendor_mis.department_id', '=', 'departments.id')
-            ->leftJoin('userlogins', 'vendor_mis.vendor_id', '=', 'userlogins.id')
+
+        $query = DB::table('vendor_silo')
+            ->leftJoin('divisions', 'vendor_silo.section_id', '=', 'divisions.id')
+            ->leftJoin('division_new', 'vendor_silo.division_id', '=', 'division_new.id')
+            ->leftJoin('userlogins', 'vendor_silo.vendor_id', '=', 'userlogins.id')
             ->select(
-                'vendor_mis.*',
-                'divisions.name as division_name',
-                'departments.department_name',
+                'vendor_silo.*',
+                'divisions.name as section',
+                'division_new.name as division_name',
                 'userlogins.name as vendor_name'
             )
-            ->orderBy('vendor_mis.id', 'desc');
+            ->orderBy('vendor_silo.id', 'desc');
+
         // Apply filtering based on session conditions
         if (Session::get('user_sub_typeSession') != 3) {
             if (Session::get('clm_role') == 'safety_dept') {
-                $query->where('vendor_mis.status', 'Pending_with_safety');
+                $query->where('vendor_silo.status', 'Pending_with_safety');
             } else {
-                $query->where('vendor_mis.created_by', Session::get('user_idSession'));
+                $query->where('vendor_silo.created_by', Session::get('user_idSession'));
             }
         }
 
@@ -61,11 +58,9 @@ class Vendor_siloController extends Controller
             return $item;
         });
 
-        return response()->json([
-            'status' => 'ok',
-            'data' => $vms_lists
-        ]);
+        return view('admin.vendor_silo.index', compact('divisions', 'id', 'vms_lists'));
     }
+
 
 
     public function create_ifream($id = null)
@@ -109,12 +104,13 @@ class Vendor_siloController extends Controller
     {
 
 
-        $rules = [
-            'division' => 'required|integer',
-            'plant' => 'required|integer',
-            'department' => 'required|integer',
-            'month' => 'required',
-        ];
+
+        // $rules = [
+        //     'division' => 'required|integer',
+        //     'plant' => 'required|integer',
+
+
+        // ];
 
         // for ($i = 1; $i <= 10; $i++) {
         //     $rules["lead{$i}_val"] = 'required|integer|min:0';
@@ -126,28 +122,19 @@ class Vendor_siloController extends Controller
         //     $rules["lag{$i}_doc"] = 'nullable|file|mimes:pdf|max:2048';
         // }
 
-        $request->validate($rules);
+        // $request->validate($rules);
 
 
         // Manual conditional validation (val > 0 => doc required)
-        if ($request->lead1_val > 0 && !$request->hasFile('lead1_doc')) {
-            return back()->withErrors(['lead1_doc' => 'Document required for Lead 1'])->withInput();
+
+        if ($request->status == 'draft') {
+            $status = 'draft';
+        } elseif ($request->status == 'final') {
+            $status = 'pending_with_inclusion_user';
         }
-        if ($request->lead2_val > 0 && !$request->hasFile('lead2_doc')) {
-            return back()->withErrors(['lead2_doc' => 'Document required for Lead 2'])->withInput();
-        }
-        if ($request->lead3_val > 0 && !$request->hasFile('lead3_doc')) {
-            return back()->withErrors(['lead3_doc' => 'Document required for Lead 3'])->withInput();
-        }
-        if ($request->lead4_val > 0 && !$request->hasFile('lead4_doc')) {
-            return back()->withErrors(['lead4_doc' => 'Document required for Lead 4'])->withInput();
-        }
-        if ($request->lead5_val > 0 && !$request->hasFile('lead5_doc')) {
-            return back()->withErrors(['lead5_doc' => 'Document required for Lead 5'])->withInput();
-        }
-        if ($request->lead6_val > 0 && !$request->hasFile('lead6_doc')) {
-            return back()->withErrors(['lead6_doc' => 'Document required for Lead 6'])->withInput();
-        }
+
+
+
         if ($request->lead7_val > 0 && !$request->hasFile('lead7_doc')) {
             return back()->withErrors(['lead7_doc' => 'Document required for Lead 7'])->withInput();
         }
@@ -166,20 +153,20 @@ class Vendor_siloController extends Controller
             return $file->getMimeType();
         };
 
-        $location = public_path('documents/vendor_mis');
+        $location = public_path('documents/vendor_silo');
         $uid = $request->uid ?? uniqid();
         $datetime = date('YmdHis');
 
         // Initialize variables
-        $lead1_doc = $lead2_doc = $lead3_doc = $lead4_doc = $lead5_doc = null;
-        $lead6_doc = $lead7_doc = $lead8_doc = $lead9_doc = $lead10_doc = null;
-        $lag1_doc = $lag2_doc = $lag3_doc = $lag4_doc = $lag5_doc = null;
+        $vehicle_registration = $insurance_doc = $fitness_doc = $puc_doc = $road_permit_certificate = null;
+        $vessel_certiicate = $pressure_gauge_certificate = $pressure_relief_certificate = null;
 
         // Helper for moving and setting path
-        function handleDoc($request, $field, $index, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, &$errors)
+        function handleDoc($request, $field, $index, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, &$errors, $existingFile = null)
         {
-            if (empty($field) || !$request->hasFile($field)) {
-                return null;
+            // If no new file uploaded, return existing file path
+            if (!$request->hasFile($field)) {
+                return $existingFile;
             }
 
             $file = $request->file($field);
@@ -187,120 +174,185 @@ class Vendor_siloController extends Controller
 
             if (!in_array($mime, $allowedMimeTypes)) {
                 $errors[$field] = 'Only PDF files are allowed. Uploaded type: ' . $mime;
-                return null; // Return nothing, but log error
+                return $existingFile; // Keep old file if validation fails
             }
 
             $filename = "{$uid}_{$datetime}_{$index}." . $file->getClientOriginalExtension();
-            $file->move($location, $filename);
-            return "documents/vendor_mis/" . $filename;
+            $file->move(public_path('documents/vendor_silo'), $filename);
+            return "documents/vendor_silo/" . $filename;
+
         }
+
         // Lead documents (1 to 10)
-        $lead1_doc = handleDoc($request, 'lead1_doc', 1, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead2_doc = handleDoc($request, 'lead2_doc', 2, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead3_doc = handleDoc($request, 'lead3_doc', 3, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead4_doc = handleDoc($request, 'lead4_doc', 4, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead5_doc = handleDoc($request, 'lead5_doc', 5, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead6_doc = handleDoc($request, 'lead6_doc', 6, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead7_doc = handleDoc($request, 'lead7_doc', 7, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead8_doc = handleDoc($request, 'lead8_doc', 8, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead9_doc = handleDoc($request, 'lead9_doc', 9, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lead10_doc = handleDoc($request, 'lead10_doc', 10, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
+        $vehicle_registration = handleDoc(
+            $request,
+            'vehicle_reg_file',
+            1,
+            $uid,
+            $datetime,
+            $location,
+            $allowedMimeTypes,
+            $getMimeType,
+            $errors,
+            $request->input('existing_vehicle_reg_file') // 👈 from form hidden field
+        );
+
+        $insurance_doc = handleDoc($request, 'insurance_file', 2, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors, $request->input('existing_insurance_file'));
+
+        $fitness_doc = handleDoc($request, 'fitness_file', 3, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors, $request->input('existing_fitness_file'));
+
+        $puc_doc = handleDoc($request, 'puc_file', 4, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors, $request->input('existing_puc_file'));
+
+        $road_permit_certificate = handleDoc($request, 'road_permit_certificate', 5, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors, $request->input('existing_road_permit_certificate'));
+
+        $vessel_certiicate = handleDoc($request, 'pressure_vessel_file', 6, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors, $request->input('existing_pressure_vessel_file'));
+
+        $pressure_gauge_certificate = handleDoc($request, 'pressure_gauge_file', 7, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors, $request->input('existing_pressure_gauge_file'));
+
+        $pressure_relief_certificate = handleDoc($request, 'pressure_relief_file', 8, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors, $request->input('existing_pressure_relief_file'));
+
+        // $lead9_doc = handleDoc($request, 'lead9_doc', 9, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
+        // $lead10_doc = handleDoc($request, 'lead10_doc', 10, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
 
         // Lag documents (1 to 6)
-        $lag1_doc = handleDoc($request, 'lag1_doc', 11, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lag2_doc = handleDoc($request, 'lag2_doc', 12, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lag3_doc = handleDoc($request, 'lag3_doc', 13, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lag4_doc = handleDoc($request, 'lag4_doc', 14, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
-        $lag5_doc = handleDoc($request, 'lag5_doc', 15, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
+        // $lag1_doc = handleDoc($request, 'lag1_doc', 11, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
+        // $lag2_doc = handleDoc($request, 'lag2_doc', 12, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
+        // $lag3_doc = handleDoc($request, 'lag3_doc', 13, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
+        // $lag4_doc = handleDoc($request, 'lag4_doc', 14, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
+        // $lag5_doc = handleDoc($request, 'lag5_doc', 15, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType, $errors);
 
+        $sl_get = DB::table('vendor_silo')->select('sl', 'full_sl')->first();
 
+        if (empty($request->id)) {
+            if (!empty($sl_get->sl)) {
+                $sl = $sl_get->sl + 1;
+            } else {
+                $sl = 1;
+            }
 
-        // Insert into database
-        $vendor_mis = DB::table('vendor_mis')->insert([
-            'plant_id' => $request->plant,
+            $full_sl = "JAM/Silo Tanker/" . $sl;
+        } else {
+            $sl = $sl_get->sl;
+            $full_sl = $sl_get->full_sl;
+        }
+        $data = [
+            'sl' => $sl,
+            'full_sl' => $full_sl,
             'division_id' => $request->division,
-            'department_id' => $request->department,
-            'month' => $request->month,
+            'section_id' => $request->plant,
+            'approver_id' => $request->approver,
 
-            'lead1_val' => $request->lead1_val,
-            'lead1_doc' => $lead1_doc,
-            'lead2_val' => $request->lead2_val,
-            'lead2_doc' => $lead2_doc,
-            'lead3_val' => $request->lead3_val,
-            'lead3_doc' => $lead3_doc,
-            'lead4_val' => $request->lead4_val,
-            'lead4_doc' => $lead4_doc,
-            'lead5_val' => $request->lead5_val,
-            'lead5_doc' => $lead5_doc,
-            'lead6_val' => $request->lead6_val,
-            'lead6_doc' => $lead6_doc,
-            'lead7_val' => $request->lead7_val,
-            'lead7_doc' => $lead7_doc,
-            'lead8_val' => $request->lead8_val,
-            'lead8_doc' => $lead8_doc,
-            'lead9_val' => $request->lead9_val,
-            'lead9_doc' => $lead9_doc,
-            'lead10_val' => $request->lead10_val,
-            'lead10_doc' => $lead10_doc,
-            'lag1_val' => $request->lag1_val,
-            'lag1_doc' => $lag1_doc,
-            'lag2_val' => $request->lag2_val,
-            'lag2_doc' => $lag2_doc,
-            'lag3_val' => $request->lag3_val,
-            'lag3_doc' => $lag3_doc,
-            'lag4_val' => $request->lag4_val,
-            'lag4_doc' => $lag4_doc,
-            'lag5_val' => $request->lag5_val,
-            'lag5_doc' => $lag5_doc,
+            'work_order_no' => $request->work_order_no,
+            'validity' => $request->validity,
+
+            'vehicle_registration_no' => $request->vehicle_reg_no,
+            'registration_doc' => $vehicle_registration, // doc
+            'insurance_from' => $request->insurance_from,
+            'insurance_to' => $request->insurance_to,
+            'insurance_doc' => $insurance_doc, // doc
+            'valid_fitness_inspection_date' => $request->fitness_date,
+            'fitness_certificate' => $fitness_doc, // doc
+            'puc_inspection_date' => $request->puc_inspection_date,
+            'puc_inspection_due_date' => $request->puc_due_date,
+            'puc_certificate' => $puc_doc, // doc
+            'valid_road_permit_date' => $request->valid_road_permit_date,
+            'valid_road_permit_due_date' => $request->valid_road_permit_due_date,
+            'road_permit_certificate' => $road_permit_certificate, // doc
+
+
+            'vehicle_dupted_for' => $request->vehicle_deputed_for,
+            'dfms' => $request->dfms_available,
+            'hatch_strainers' => $request->hatch_strainers,
+            'gps_tracker' => $request->gps_tracker_available,
+            'fuel_tank_strainers' => $request->fuel_tank_stainers,
+            'battery_placment' => $request->battery_placement,
+            'fire_extinguishers' => $request->fire_extinguisher,
+            'first_aid_box' => $request->first_aid_box,
+            'stepney' => $request->stepney,
+            'scoth_block' => $request->scotch_block,
+            'earth_chain' => $request->earth_block,
+
+            'vessel_test_date' => $request->pressure_vessel_test_date,
+            'vessel_due_date' => $request->pressure_vessel_due_date,
+            'vessel_certiicate' => $vessel_certiicate, //doc
+            'pressure_gauge_date' => $request->pressure_gauge_date,
+            'pressure_gauge_due_date' => $request->pressure_gauge_due_date,
+            'pressure_gauge_certificate' => $pressure_gauge_certificate, // doc
+            'pressure_relief_test_date' => $request->pressure_relief_test_date,
+            'pressure_relief_due_date' => $request->pressure_relief_due_date,
+            'pressure_relief_certificate' => $pressure_relief_certificate, // doc
+
 
 
             'created_by' => $uid,
             'created_datetime' => now(),
             'vendor_id' => $uid,
-            'status' => 'pending_with_safety'
-        ]);
+            'status' => $status
+        ];
 
-        if ($vendor_mis) {
-            $lastId = DB::getPdo()->lastInsertId();
+
+
+        if ($request->id) {
+            $vendor_silo_id = $request->id;
+            $vendor_silo = DB::table('vendor_silo')
+                ->where('id', $request->id)
+                ->update($data);
+            DB::table('vendor_silo_desired')->where('vendor_silo_id', $vendor_silo_id)->delete();
+            DB::table('vendor_silo_flow')->where('vendor_silo_id', $vendor_silo_id)->delete();
+        } else {
+
+            $vendor_silo = $vendor_silo_id = DB::table('vendor_silo')->insertGetId($data);
+
+        }
+
+        // Insert into database
+
+
+        if ($vendor_silo) {
+
             $datetime = date('Y-m-d H:i:s');
             // Define approval flow (manually or dynamically from DB)
             $loop = [
-                ['type' => 'vendor', 'department_id' => 0, 'level' => 0],
-                ['type' => 'safety', 'department_id' => 1, 'level' => 1]
+                ['type' => 'vendor', 'department_id' => 0, 'level' => 0, 'type_status' => 'New'],
+                ['type' => 'inclusion', 'department_id' => $request->approver_id, 'level' => 1, 'type_status' => 'New'], // in department we put user_id for this row only
+                ['type' => 'safety', 'department_id' => 2, 'level' => 2, 'type_status' => 'New']
             ];
 
             $desiredIds = [];
 
             foreach ($loop as $item) {
-                $desired_id = DB::table('vendor_mis_desired')->insertGetId([
-                    'vendor_mis_id' => $lastId,
+                $desired_id = DB::table('vendor_silo_desired')->insertGetId([
+                    'vendor_silo_id' => $vendor_silo_id,
                     'type' => $item['type'],
                     'department_id' => $item['department_id'],
                     'level' => $item['level'],
+                    'type_status' => 'New'
                 ]);
 
                 // Track desired ID by level
-                if ($item['level'] != 0) {
+                if ($item['level'] != 0 && $item['level'] != 2) {
                     $desiredIds[$item['level']] = $desired_id;
                 }
             }
 
             foreach ($loop as $item) {
-                if ($item['level'] != 0) {
-                    DB::table('vendor_mis_flow')->insert([
-                        'vendor_mis_id' => $lastId,
+                if ($item['level'] != 0 && $item['level'] != 2) {
+                    DB::table('vendor_silo_flow')->insert([
+                        'vendor_silo_id' => $vendor_silo_id,
                         'desired_id' => $desiredIds[$item['level']],
                         'department_id' => $item['department_id'],
                         'level' => $item['level'],
                         'created_datetime' => $datetime,
                         'status' => 'N',
+                        'type' => 'New'
 
                     ]);
                 }
             }
             return response()->json([
                 'success' => true,
-                'message' => 'Data saved successfully!'
+                'message' => 'Data saved successfully!',
+                'id' => $vendor_silo_id
             ]);
 
         } else {
@@ -329,9 +381,9 @@ class Vendor_siloController extends Controller
             return redirect()->back()->with('error', 'No ID provided');
         }
 
-        $vms_details = DB::table('vendor_mis')->where('id', $id)->orderBy('id', 'desc')->first();
+        $vms_details = DB::table('vendor_silo')->where('id', $id)->orderBy('id', 'desc')->first();
         $divs = DB::table('division_new')->get();
-        return view('admin.vendor_mis.edit', compact(
+        return view('admin.vendor_silo.edit', compact(
             'vms_details',
             'divs'
 
@@ -340,7 +392,7 @@ class Vendor_siloController extends Controller
 
     }
 
-    public function edit_ifream($id)
+    public function edit_ifream($id, $user_id)
     {
 
 
@@ -348,11 +400,12 @@ class Vendor_siloController extends Controller
             return redirect()->back()->with('error', 'No ID provided');
         }
 
-        $vms_details = DB::table('vendor_mis')->where('id', $id)->orderBy('id', 'desc')->first();
+        $vms_details = DB::table('vendor_silo')->where('id', $id)->orderBy('id', 'desc')->first();
         $divs = DB::table('division_new')->get();
-        return view('admin.vendor_mis.edit_ifream', compact(
+        return view('admin.vendor_silo.edit_ifream', compact(
             'vms_details',
-            'divs'
+            'divs',
+            'user_id'
 
 
         ));
@@ -386,9 +439,9 @@ class Vendor_siloController extends Controller
             return redirect()->back()->with('error', 'No ID provided');
         }
 
-        $vms_details = DB::table('vendor_mis')->where('id', $id)->orderBy('id', 'desc')->first();
+        $vms_details = DB::table('vendor_silo')->where('id', $id)->orderBy('id', 'desc')->first();
         $divs = DB::table('division_new')->get();
-        return view('admin.vendor_mis.edit_entry', compact(
+        return view('admin.vendor_silo.edit_entry', compact(
             'vms_details',
             'divs'
 
@@ -397,7 +450,7 @@ class Vendor_siloController extends Controller
 
     }
 
-    public function edit_data_ifream($id)
+    public function edit_data_ifream($id, $user_id)
     {
 
 
@@ -405,11 +458,12 @@ class Vendor_siloController extends Controller
             return redirect()->back()->with('error', 'No ID provided');
         }
 
-        $vms_details = DB::table('vendor_mis')->where('id', $id)->orderBy('id', 'desc')->first();
+        $vms_details = DB::table('vendor_silo')->where('id', $id)->orderBy('id', 'desc')->first();
         $divs = DB::table('division_new')->get();
-        return view('admin.vendor_mis.edit_data_ifream', compact(
+        return view('admin.vendor_silo.edit_data_ifream', compact(
             'vms_details',
-            'divs'
+            'divs',
+            'user_id'
 
 
         ));
@@ -422,20 +476,10 @@ class Vendor_siloController extends Controller
             $request->validate([
                 'action' => 'required',
                 'remarks' => 'required',
-                'lag6_doc' => 'nullable|file|mimes:pdf|max:2048',
             ]);
 
 
             date_default_timezone_set('Asia/Kolkata');
-            $now = now();
-            $allowedMimeTypes = ['application/pdf'];
-            $getMimeType = function ($file) {
-                return $file->getMimeType();
-            };
-
-            $location = public_path('documents/vendor_mis');
-            $uid = uniqid();
-            $datetime = date('YmdHis');
 
             // if ($request->lag6_val > 0 && !$request->hasFile('lag6_doc')) {
             //     return response()->json([
@@ -446,63 +490,142 @@ class Vendor_siloController extends Controller
 
             // }
 
-            $lag6_doc = null;
-            function handleDoc($request, $field, $index, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType)
-            {
-                // ✅ Check if field is null or empty string
-                if (empty($field) || !$request->hasFile($field)) {
-                    return null; // No file uploaded or invalid field
-                }
 
-                $file = $request->file($field);
+            if ($request->type == 'New') {
+                $decision = $request->action;
+                $remarks = $request->remarks;
+                $flow_id = $request->flow_id;
+                $datetime = date('Y-m-d H:i:s');
 
-                // ✅ Check MIME type
-                $mime = $getMimeType($file);
-                if (!in_array($mime, $allowedMimeTypes)) {
-                    throw new \Exception("Invalid type: $mime");
-                }
 
-                // ✅ Generate filename and move file
-                $filename = "{$uid}_{$datetime}_{$index}." . $file->getClientOriginalExtension();
-                $file->move($location, $filename);
 
-                return "documents/vendor_mis/" . $filename;
-            }
-
-            $lag6_doc = handleDoc($request, 'lag6_doc', 16, $uid, $datetime, $location, $allowedMimeTypes, $getMimeType);
-            $decision = $request->action;
-            $remarks = $request->remarks;
-            $flow_id = $request->flow_id;
-            $datetime = date('Y-m-d H:i:s');
-
-            DB::table('vendor_mis_flow')->where('id', $flow_id)->update([
-                'status' => 'Y',
-                'decision' => $decision,
-                'remarks' => $remarks,
-                'remarks_datetime' => $datetime
-            ]);
-
-            if ($decision == 'return') {
-                $flow = DB::table('vendor_mis_flow')->where('id', $flow_id)->select('level')->first();
-                $level = $flow->level - 1;
-
-                $find_desired = DB::table('vendor_mis_desired')->where('level', $level)->where('vendor_mis_id', $id)->first();
-
-                DB::table('vendor_mis_flow')->insert([
-                    'vendor_mis_id' => $id,
-                    'desired_id' => $find_desired->id,
-                    'department_id' => $find_desired->department_id,
-                    'level' => $find_desired->level,
-                    'created_datetime' => $datetime,
-                    'status' => 'N'
+                DB::table('vendor_silo_flow')->where('id', $flow_id)->update([
+                    'status' => 'Y',
+                    'decision' => $decision,
+                    'remarks' => $remarks,
+                    'remarks_datetime' => $datetime
                 ]);
-            }
 
-            DB::table('vendor_mis')->where('id', $id)->update([
-                'status' => $decision,
-                'lag6_val' => $request->lag6_val,
-                'lag6_doc' => $lag6_doc
-            ]);
+                if ($decision == 'return') {
+                    $flow = DB::table('vendor_silo_flow')->where('id', $flow_id)->where('type', 'New')->select('level')->first();
+                    $level = $flow->level - 1;
+
+                    $find_desired = DB::table('vendor_silo_desired')->where('level', $level)->where('vendor_silo_id', $id)->where('type_status', 'New')->first();
+
+                    DB::table('vendor_silo_flow')->insert([
+                        'vendor_silo_id' => $id,
+                        'desired_id' => $find_desired->id,
+                        'department_id' => $find_desired->department_id,
+                        'level' => $find_desired->level,
+                        'created_datetime' => $datetime,
+                        'status' => 'N',
+                        'type' => 'New'
+                    ]);
+                }
+
+                if ($decision == 'approve') {
+                    $flow = DB::table('vendor_silo_flow')->where('id', $flow_id)->where('type', 'New')->select('level')->first();
+                    $level = $flow->level + 1;
+                    $find_desired = DB::table('vendor_silo_desired')->where('level', $level)->where('type_status', 'New')->where('vendor_silo_id', $id)->first();
+                    if (!empty($find_desired->id)) {
+
+                        DB::table('vendor_silo_flow')->insert([
+                            'vendor_silo_id' => $id,
+                            'desired_id' => $find_desired->id,
+                            'department_id' => $find_desired->department_id,
+                            'level' => $find_desired->level,
+                            'created_datetime' => $datetime,
+                            'status' => 'N',
+                            'type' => 'New'
+                        ]);
+
+                        $check_current = DB::table('vendor_silo')->where('id', $id)->select('status')->first();
+                        if ($check_current->status == 'pending_with_inclusion_user') {
+                            $status = 'pending_with_safety';
+                        } elseif ($check_current->status == 'pending_with_safety') {
+                            $status = 'approve';
+                        }
+
+                        DB::table('vendor_silo')->where('id', $id)->update([
+                            'status' => $status,
+                        ]);
+                    } else {
+                        DB::table('vendor_silo')->where('id', $id)->update([
+                            'status' => $decision,
+                        ]);
+                    }
+
+
+                }
+
+            } elseif ($request->type == 'Return') {
+
+                $decision = $request->action;
+                $remarks = $request->remarks;
+                $flow_id = $request->flow_id;
+                $datetime = date('Y-m-d H:i:s');
+
+
+
+                DB::table('vendor_silo_flow')->where('id', $flow_id)->update([
+                    'status' => 'Y',
+                    'decision' => $decision,
+                    'remarks' => $remarks,
+                    'remarks_datetime' => $datetime
+                ]);
+
+                if ($decision == 'return') {
+                    $flow = DB::table('vendor_silo_flow')->where('id', $flow_id)->where('type', 'Return')->select('level')->first();
+                    $level = $flow->level - 1;
+
+                    $find_desired = DB::table('vendor_silo_desired')->where('level', $level)->where('vendor_silo_id', $id)->where('type_status', 'Return')->first();
+
+                    DB::table('vendor_silo_flow')->insert([
+                        'vendor_silo_id' => $id,
+                        'desired_id' => $find_desired->id,
+                        'department_id' => $find_desired->department_id,
+                        'level' => $find_desired->level,
+                        'created_datetime' => $datetime,
+                        'status' => 'N',
+                        'type' => 'Return'
+                    ]);
+                }
+
+                if ($decision == 'approve') {
+                    $flow = DB::table('vendor_silo_flow')->where('id', $flow_id)->where('type', 'Return')->select('level')->first();
+                    $level = $flow->level + 1;
+                    $find_desired = DB::table('vendor_silo_desired')->where('level', $level)->where('vendor_silo_id', $id)->where('type_status', 'Return')->first();
+                    if (!empty($find_desired->id)) {
+
+                        DB::table('vendor_silo_flow')->insert([
+                            'vendor_silo_id' => $id,
+                            'desired_id' => $find_desired->id,
+                            'department_id' => $find_desired->department_id,
+                            'level' => $find_desired->level,
+                            'created_datetime' => $datetime,
+                            'status' => 'N',
+                            'type' => 'Return'
+                        ]);
+
+                        $check_current = DB::table('vendor_silo')->where('id', $id)->select('return_status')->first();
+                        if ($check_current->return_status == 'pending_with_inclusion_user') {
+                            $status = 'pending_with_safety';
+                        } elseif ($check_current->return_status == 'pending_with_safety') {
+                            $status = 'approve';
+                        }
+
+                        DB::table('vendor_silo')->where('id', $id)->update([
+                            'return_status' => $status,
+                        ]);
+                    } else {
+                        DB::table('vendor_silo')->where('id', $id)->update([
+                            'return_status' => $decision,
+                        ]);
+                    }
+
+
+                }
+            }
 
             return response()->json([
                 'message' => 'Update processed successfully!',
@@ -511,7 +634,7 @@ class Vendor_siloController extends Controller
 
         } catch (\Exception $e) {
             // Optional: log the error
-            Log::error('Error in vendor MIS flow: ' . $e->getMessage());
+            //Log::error('Error in vendor MIS flow: ' . $e->getMessage());
 
             // Return error response
             return response()->json([
@@ -803,6 +926,73 @@ class Vendor_siloController extends Controller
 
 
 
+    }
+
+    public function return_silo(Request $request)
+    {
+        $id = $request->id;
+        $reason = $request->reason;
+        $datetime = date('Y-m-d H:i:s');
+        // Define approval flow (manually or dynamically from DB)
+        $loop = [
+            ['type' => 'vendor', 'department_id' => 0, 'level' => 0, 'type_status' => 'Return'],
+            ['type' => 'inclusion', 'department_id' => $request->approver_id, 'level' => 1, 'type_status' => 'Return'], // in department we put user_id for this row only
+            ['type' => 'safety', 'department_id' => 2, 'level' => 2, 'type_status' => 'Return']
+        ];
+
+        $desiredIds = [];
+
+        foreach ($loop as $item) {
+            $desired_id = DB::table('vendor_silo_desired')->insertGetId([
+                'vendor_silo_id' => $id,
+                'type' => $item['type'],
+                'department_id' => $item['department_id'],
+                'level' => $item['level'],
+                'type_status' => 'Return'
+            ]);
+
+            // Track desired ID by level
+            if ($item['level'] != 0 && $item['level'] != 2) {
+                $desiredIds[$item['level']] = $desired_id;
+            }
+        }
+
+        foreach ($loop as $item) {
+            if ($item['level'] != 0 && $item['level'] != 2) {
+                DB::table('vendor_silo_flow')->insert([
+                    'vendor_silo_id' => $id,
+                    'desired_id' => $desiredIds[$item['level']],
+                    'department_id' => $item['department_id'],
+                    'level' => $item['level'],
+                    'created_datetime' => $datetime,
+                    'status' => 'N',
+                    'type' => 'Return'
+
+                ]);
+            }
+        }
+
+
+        $update = DB::table('vendor_silo')->where('id', $id)->update([
+            'return_status' => 'pending_with_inclusion_user',
+            'return_datetime' => $datetime,
+            'return_reason' => $reason
+        ]);
+        if ($update) {
+            // ✅ Return JSON for AJAX
+            return response()->json([
+                'success' => true,
+                'message' => 'Tanker excluded successfully!',
+
+            ]);
+        } else {
+            // ✅ Return JSON for AJAX
+            return response()->json([
+                'success' => false,
+                'message' => 'Tanker excluded Not successfully!',
+
+            ]);
+        }
     }
     public function getDepartment($id)
     {

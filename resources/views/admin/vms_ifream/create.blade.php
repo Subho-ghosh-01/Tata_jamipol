@@ -297,6 +297,7 @@ if ($usertype == '1') {
 
         <div class="form-group">
             <label>Vehicle Registration No.</label>
+
             <input type="text" class="form-control" name="registration_no" required>
             <label class="mt-2">Upload Registration Certificate (RC)</label>
 
@@ -318,7 +319,7 @@ if ($usertype == '1') {
                 <div class="col"> <label for="insurance_from"><small>From</small></label><input type="date"
                         class="form-control" name="insurance_from" required></div>
                 <div class="col"><label for="insurance_from"><small>To</small></label><input type="date"
-                        class="form-control" name="insurance_to" required></div>
+                        class="future-date form-control" name="insurance_to" required></div>
             </div>
             <label class="mt-2">Upload Insurance Document</label>
             <div class="dropzone-wrapper dropzone">
@@ -352,15 +353,25 @@ if ($usertype == '1') {
 
         <div class="form-group">
             <label>Vehicle Registration Date</label>
-            <input type="date" class="form-control" name="registration_date" required>
+            <div class="row">
+                <div class="col-md-6">
+                    <label>From</label>
+                    <input type="date" class="form-control" name="registration_date" required>
+                </div>
+                <div class="col-md-6">
+                    <label>To</label>
+                    <input type="date" class="form-control future-date" name="registration_date_to" required>
+                </div>
+            </div>
         </div>
+
 
 
         <div class="form-group puc">
             <label>PUC Validity</label>
             <div class="form-row">
                 <div class="col"><input type="date" class="form-control" name="puc_from"></div>
-                <div class="col"><input type="date" class="form-control" name="puc_to"></div>
+                <div class="col"><input type="date" class="form-control future-date" name="puc_to"></div>
             </div>
             <label class="mt-2">Upload PUC Document</label>
             <div class="dropzone-wrapper dropzone">
@@ -399,7 +410,8 @@ if ($usertype == '1') {
             <label>Driving License Validity</label>
             <div class="form-row">
                 <div class="col"><input type="date" class="form-control" name="license_valid_from" required></div>
-                <div class="col"><input type="date" class="form-control" name="license_valid_to" required></div>
+                <div class="col"><input type="date" class="form-control future-date" name="license_valid_to" required>
+                </div>
             </div>
             <label class="mt-2">Upload Driving License</label>
             <div class="dropzone-wrapper dropzone">
@@ -495,7 +507,7 @@ if ($usertype == '1') {
                     registration_no: document.querySelector('[name="registration_no"]').value,
                     insurance: `${document.querySelector('[name="insurance_from"]').value} to ${document.querySelector('[name="insurance_to"]').value}`,
                     vehicle_category: document.querySelector('[name="vehicle_category"]').value,
-                    registration_date: document.querySelector('[name="registration_date"]').value,
+                    registration_date: `${document.querySelector('[name="registration_date"]').value} to ${document.querySelector('[name="registration_date_to"]').value}`,
                     puc_validity: document.querySelector('[name="puc_from"]') ?
                         `${document.querySelector('[name="puc_from"]').value || 'N/A'} to ${document.querySelector('[name="puc_to"]').value || 'N/A'}` : 'N/A',
                     driver_type: document.querySelector('[name="driver_type"]')?.value || 'N/A',
@@ -794,7 +806,52 @@ if ($usertype == '1') {
             // });
         </script>
 
+        <script>// Tomorrow's date
+            function getTomorrow() {
+                const t = new Date();
+                t.setDate(t.getDate() + 1);
+                return t.toISOString().split("T")[0];
+            }
 
+            const tomorrow = getTomorrow();
+
+            // Restrict only future-date inputs
+            document.querySelectorAll('input.future-date').forEach(input => {
+                input.setAttribute("min", tomorrow);
+
+                // Validate typed input
+                input.addEventListener("blur", function () {
+                    if (this.value && this.value < tomorrow) {
+                        alert("Past dates are not allowed!");
+                        this.value = tomorrow; // reset to tomorrow if invalid
+                    }
+                });
+            });
+
+            // Handle "from" -> "to" only if from input is future-date
+            document.querySelectorAll('input.future-date[data-date="from"]').forEach(fromInput => {
+                fromInput.addEventListener("change", function () {
+                    const toInputName = this.name.replace("from", "to");
+                    const toInput = document.querySelector(`input[name="${toInputName}"]`);
+                    if (toInput) {
+                        toInput.setAttribute("min", this.value);
+
+                        if (!toInput.value || toInput.value < this.value) {
+                            toInput.value = this.value;
+                        }
+                    }
+                });
+
+                fromInput.addEventListener("blur", function () {
+                    const toInputName = this.name.replace("from", "to");
+                    const toInput = document.querySelector(`input[name="${toInputName}"]`);
+                    if (toInput && toInput.value < this.value) {
+                        toInput.value = this.value;
+                    }
+                });
+            });
+
+        </script>
 
         <!-- SweetAlert -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

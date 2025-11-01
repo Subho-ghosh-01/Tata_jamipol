@@ -217,6 +217,11 @@ class UserController extends Controller
                     'status' => $status,
                     'active' => 'Yes',
                     'vendor_abb' => $request->vendor_abb,
+                    'unskilled' => $request->unskilled,
+                    'semi_skilled' =>$request->semi_skilled,
+                    'skilled' => $request->skilled,
+                    'high_skilled' => $request->high_skilled,
+                    'lobour_capacity' =>$request->labour_capacity
                 ]);
 
                 if ($request->supervisor) {
@@ -230,7 +235,7 @@ class UserController extends Controller
 
                 if ($request->employee) {
                     foreach ($request->employee as $key => $value) {
-                        VendorEmployeeDetails::insert([
+                        $data = [
                             'userlogins_id' => @$vendor->id,
                             'employee' => @$request->employee[$key],
                             'gatepass' => @$request->gatepass[$key],
@@ -238,9 +243,14 @@ class UserController extends Controller
                             'age' => @$request->age[$key],
                             'expiry' => @$request->expirydate[$key],
                             'created_at' => @$date
-                        ]);
+                        ];
+                
+                        
+                
+                        VendorEmployeeDetails::insert($data);
                     }
                 }
+                
                 if ($request->ElectricalVendor == 'yes') {
                     if ($request->supervisor_ven) {
                         foreach ($request->supervisor_ven as $key => $value) {
@@ -585,6 +595,10 @@ class UserController extends Controller
                     'active' => $request->active,
                     'lobour_capacity' => $request->labour_capacity,
                     'vendor_abb' => $request->vendor_abb,
+                    'unskilled' =>$request->unskilled,
+                    'semi_skilled' => $request->semi_skilled,
+                    'skilled' =>$request->skilled,
+                    'high_skilled' => $request->high_skilled
                 ]);
                 if ($request->supervisor) {
                     foreach ($request->supervisor as $key => $value) {
@@ -603,32 +617,37 @@ class UserController extends Controller
                     }
                 }
 
+               
+ //if ($request->employee != '') {
+    foreach ($request->employee as $key => $employee) {
 
-                if ($request->employee != '') {
-                    foreach ($request->employee as $key => $value) {
-                        $unique_id = $request->oldgatepassid[$key];
-                        $vendor_old = VendorEmployeeDetails::where('id', $unique_id)->first();
-                        if ($vendor_old != null) {
-                            VendorEmployeeDetails::where('id', $unique_id)->update([
-                                'employee' => @$request->employee[$key],
-                                'gatepass' => @$request->gatepass[$key],
-                                'designation' => @$request->designation[$key],
-                                'age' => @$request->age[$key],
-                                'expiry' => @$request->expirydate[$key],
+        $unique_id = $request->oldgatepassid[$key] ?? null; // Use null if not set
 
-                            ]);
-                        } else {
-                            VendorEmployeeDetails::insert([
-                                'userlogins_id' => $id,
-                                'employee' => @$request->employee[$key],
-                                'gatepass' => @$request->gatepass[$key],
-                                'designation' => @$request->designation[$key],
-                                'age' => @$request->age[$key],
-                                'expiry' => @$request->expirydate[$key],
-                            ]);
-                        }
-                    }
-                }
+        if ($unique_id) {
+          
+            // Update existing record
+            VendorEmployeeDetails::where('id', $unique_id)->update([
+                'employee'    => $employee,
+                'gatepass'    => $request->gatepass[$key] ?? null,
+                'designation' => $request->designation[$key] ?? null,
+                'age'         => $request->age[$key] ?? null,
+                'expiry'      => $request->expirydate[$key] ?? null,
+            ]);
+        } else {
+            if($employee !=''){
+            // Insert new record
+            VendorEmployeeDetails::insert([
+                'userlogins_id' => $id,
+                'employee'      => $employee,
+                'gatepass'      => $request->gatepass[$key] ?? null,
+                'designation'   => $request->designation[$key] ?? null,
+                'age'           => $request->age[$key] ?? null,
+                'expiry'        => $request->expirydate[$key] ?? null,
+            ]);
+            }
+        }
+    }
+             //   }
 
                 if ($request->supervisor_ven) {
                     foreach ($request->supervisor_ven as $key => $value) {

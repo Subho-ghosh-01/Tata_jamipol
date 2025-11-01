@@ -143,12 +143,12 @@ $gatepassv = DB::table('Clms_gatepass')->where('id', $id)->first();
             </fieldset>
 
 
-            <link href="<?php echo e(URL::to('public/css/sweetalert.css')); ?>" rel="stylesheet">
+            <!-- <link href="<?php echo e(URL::to('public/css/sweetalert.css')); ?>" rel="stylesheet">
             <script type="text/javascript" src="<?php echo e(URL::to('public/js/app.js')); ?>"> </script>
             <script type="text/javascript" src="<?php echo e(URL::to('public/js/sweetalert.js')); ?>"> </script>
             <script type="text/javascript"
                 src="<?php echo e(URL::to('node_modules/jquery-datetimepicker/jquery.datetimepicker.js')); ?>"> </script>
-            <script type="text/javascript" src="<?php echo e(URL::to('public/js/app.js')); ?>"> </script>
+          
             <script type="text/javascript" src="<?php echo e(URL::to('public/js/dataTables.buttons.min.js')); ?>"> </script>
             <script type="text/javascript" src="<?php echo e(URL::to('public/js/jszip.min.js')); ?>"> </script>
             <script type="text/javascript" src="<?php echo e(URL::to('public/js/buttons.html5.min.js')); ?>"> </script>
@@ -156,8 +156,19 @@ $gatepassv = DB::table('Clms_gatepass')->where('id', $id)->first();
             <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
             <link rel="stylesheet"
                 href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-            <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+            <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script> -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.22.0/autocomplete.jquery.min.js"
+                integrity="sha512-sYSJW8c3t/hT4R6toey7NwQmlrPMTqvDk10hsoD8oaeXUZRexAzrmpp5kVlTfy6Ru7b1+Tte2qBrRE7FOX1vgA=="
+                crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            <script src='https://code.jquery.com/jquery-latest.min.js'></script>
+            <link href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" rel="Stylesheet">
+            <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
+            <!-- jQuery UI JS -->
+            <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+            <!-- jQuery UI CSS (for styling the autocomplete dropdown) -->
+            <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
             <script type="text/javascript">
                 var path = "<?php echo e(route('admin.autocomplete')); ?>";
 
@@ -326,11 +337,10 @@ $gatepassv = DB::table('Clms_gatepass')->where('id', $id)->first();
                     <label for="form-control-label" class="col-sm-2 col-form-label">Employee P-No<span
                             style="color:red;font-size: 20px;">*</span></label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control rec" name="employeep_no" value=<?php echo e($gatepassv->emp_pno); ?>
-
+                        <input type="text" class="form-control rec" name="employeep_no" value="<?php echo e($gatepassv->emp_pno); ?>"
                             required readonly>
                         <input type="hidden" class="form-control rec" name="employeep_no_sl"
-                            value=<?php echo e($gatepassv->emp_pno_sl); ?> required readonly>
+                            value="<?php echo e($gatepassv->emp_pno_sl); ?>" required readonly>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -374,8 +384,8 @@ $gatepassv = DB::table('Clms_gatepass')->where('id', $id)->first();
         </div>
 
         <?php 
-                                                                                                                                                                                                                                                                if ($gatepassv->education != 'Below-Matric') {
-                                                                                                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                                                                    if ($gatepassv->education != 'Below-Matric') {
+                                                                                                                                                                                                                                                                                    ?>
 
 
         <div class="form-group row" id="board_name">
@@ -397,7 +407,7 @@ $gatepassv = DB::table('Clms_gatepass')->where('id', $id)->first();
         </div>
         <?php
     }
-                                                                                                                                                                                                                                                                ?>
+                                                                                                                                                                                                                                                                                    ?>
         <div class="form-group row">
             <label for="form-control-label" class="col-sm-2 col-form-label">Experience<span
                     style="color:red;font-size: 20px;">*</span></label>
@@ -610,20 +620,7 @@ $gatepassv = DB::table('Clms_gatepass')->where('id', $id)->first();
 
     </fieldset>
 
-    <link href="<?php echo e(URL::to('public/css/sweetalert.css')); ?>" rel="stylesheet">
-    <script type="text/javascript" src="<?php echo e(URL::to('public/js/app.js')); ?>"> </script>
-    <script type="text/javascript" src="<?php echo e(URL::to('public/js/sweetalert.js')); ?>"> </script>
-    <script type="text/javascript"
-        src="<?php echo e(URL::to('node_modules/jquery-datetimepicker/jquery.datetimepicker.js')); ?>"> </script>
-    <script type="text/javascript" src="<?php echo e(URL::to('public/js/app.js')); ?>"> </script>
-    <script type="text/javascript" src="<?php echo e(URL::to('public/js/dataTables.buttons.min.js')); ?>"> </script>
-    <script type="text/javascript" src="<?php echo e(URL::to('public/js/jszip.min.js')); ?>"> </script>
-    <script type="text/javascript" src="<?php echo e(URL::to('public/js/buttons.html5.min.js')); ?>"> </script>
-    <script type="text/javascript" src="<?php echo e(URL::to('public/js/all.js')); ?>"> </script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-
+    
     <script>
         $('#divisionID').on('change', function () {
             var division_ID = $(this).val();

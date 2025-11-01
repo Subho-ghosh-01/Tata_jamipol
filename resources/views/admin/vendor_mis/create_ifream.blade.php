@@ -228,7 +228,7 @@
             <section class="section active" id="section1">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="mb-3">Basic Information</h4>
+                        <h4 class="mb-3" style="color: rgb(37, 69, 110);">Basic Information</h4>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Division <span class="text-danger">*</span></label>
@@ -255,8 +255,13 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Reporting Month <span class="text-danger">*</span></label>
-                                <input type="month" class="form-control" name="report_month" id="report_month" required>
+
+
+                                <input type="month" class="form-control" name="report_month" min="{{ date('Y-m') }}"
+                                    max="{{ date('Y-m') }}" id="report_month" required>
+
                             </div>
+
                         </div>
                         <p class="hint mt-3"><i class="bi bi-lightbulb"></i> You can move back anytime; your inputs
                             remain saved.</p>
@@ -269,7 +274,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">Lead Indicators</h4>
+                            <h4 class="mb-0" style="color: green;">Lead Indicators</h4>
                             <span class="badge badge-soft rounded-pill px-3 py-2"><i class="bi bi-info-circle"></i> If
                                 value > 0, attach proof</span>
                         </div>
@@ -284,7 +289,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">Lag Indicators</h4>
+                            <h4 class="mb-0" style="color: red;">Lag Indicators</h4>
                             <span class="badge badge-soft rounded-pill px-3 py-2"><i class="bi bi-info-circle"></i> If
                                 value > 0, attach proof</span>
                         </div>
@@ -358,8 +363,8 @@
 
                     <div class="form-check mt-2">
                         <input class="form-check-input" type="checkbox" id="consentCheck">
-                        <label class="form-check-label" for="consentCheck">I confirm the information and attachments are
-                            accurate.</label>
+                        <label class="form-check-label" for="consentCheck">I confirm the above information is correct
+                            and true in nature.</label>
                     </div>
                 </div>
                 <div class="modal-footer flex-column align-items-start">
@@ -374,7 +379,7 @@
                             <i class="bi bi-save"></i> Save as Draft
                         </button>
                         <button class="btn btn-success" id="btnFinalSubmit">
-                            <i class="bi bi-check2-circle"></i> Submit Final
+                            <i class="bi bi-check2-circle"></i> Submit
                         </button>
                     </div>
                 </div>
@@ -463,7 +468,7 @@
     <script>
         /* ---------- Config ---------- */
         const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-        const ALLOWED_EXT = ["png", "jpg", "jpeg", "gif", "webp", "svg", "pdf", "xls", "xlsx", "csv", "doc", "docx", "ppt", "pptx", "zip", "rar", "7z"];
+        const ALLOWED_EXT = ["pdf"];
 
         const leadNames = [
             "1. Safety Training Session Conducted During The Month",
@@ -483,8 +488,7 @@
             "2. No of Medical Treated Case",
             "3. No of LTIs",
             "4. No of Fatality",
-            "5. No of Non Injury Incident",
-            "6. No of Severity 4&5 Violation Reported"
+            "5. No of Non Injury Incident"
         ];
 
         /* ---------- Helpers ---------- */
@@ -506,28 +510,49 @@
             names.forEach((label, i) => {
                 const idx = i + 1;
                 const isAlwaysOptional = (type === "lead" && idx === 1);
+
                 const wrap = document.createElement('div');
                 wrap.className = "col-12";
-                wrap.innerHTML = `
-        <div class="p-3 border rounded-4 bg-white">
-            <div class="row g-3 align-items-end">
-                <div class="col-sm-3">
-                    <label class="form-label">${label}</label>
-                    <input type="number" min="0" class="form-control val-input" 
-                        name="${type}${idx}_val" data-type="${type}" data-index="${idx}" 
-                        data-label="${label}" data-optional="${isAlwaysOptional ? 1 : 0}" placeholder="0">
-                </div>
-                <div class="col-sm-9">
-                    <label id="${type}${idx}_attLabel" class="form-label">Attachment(s)</label>
-                    <input type="file" class="form-control up-input" name="${type}${idx}_doc[]" 
-                        data-type="${type}" data-index="${idx}" multiple>
-                    <div class="hint mt-1 text-muted">
-                        <small>Allowed: ${ALLOWED_EXT.join(", ").toUpperCase()} | Max size: 5 MB</small>
-                    </div>
-                    <ul class="file-list mt-2" id="${type}-list-${idx}"></ul>
-                </div>
+
+                let attachmentHTML = `
+    <div class="col-sm-9">
+        <label id="${type}${idx}_attLabel" class="form-label">Attachment(s)</label>
+        <input type="file" class="form-control up-input" name="${type}${idx}_doc[]" 
+            data-type="${type}" data-index="${idx}" multiple>
+        <div class="hint mt-1 text-muted">
+            <small>Allowed: ${ALLOWED_EXT.join(", ").toUpperCase()} | Max size: 5 MB</small>
+        </div>
+        <ul class="file-list mt-2" id="${type}-list-${idx}"></ul>
+    </div>`;
+
+
+
+                if (type === "lead" && idx === 1) {
+                    wrap.innerHTML = `
+    <div class="p-3 border rounded-4 bg-white">
+        <div class="row g-3 align-items-end">
+            <div class="col-sm-12">
+                <label class="form-label">${label}</label>
+                <input type="number" min="0" class="form-control val-input" 
+                    name="${type}${idx}_val" data-type="${type}" data-index="${idx}" 
+                    data-label="${label}" data-optional="${isAlwaysOptional ? 1 : 0}" placeholder="0">
             </div>
-        </div>`;
+        </div>
+    </div>`;
+                } else {
+                    wrap.innerHTML = `
+    <div class="p-3 border rounded-4 bg-white">
+        <div class="row g-3 align-items-end">
+            <div class="col-sm-3">
+                <label class="form-label">${label}</label>
+                <input type="number" min="0" class="form-control val-input" 
+                    name="${type}${idx}_val" data-type="${type}" data-index="${idx}" 
+                    data-label="${label}" data-optional="${isAlwaysOptional ? 1 : 0}" placeholder="0">
+            </div>
+            ${attachmentHTML}
+        </div>
+    </div>`;
+                }
                 container.appendChild(wrap);
                 files[type][idx] = [];
             });
@@ -535,6 +560,15 @@
 
         buildIndicators('leadContainer', 'lead', leadNames);
         buildIndicators('lagContainer', 'lag', lagNames);
+
+        // Hide all attachment fields initially
+        document.querySelectorAll('.col-sm-9').forEach(div => {
+            if (div.querySelector('.up-input')) {
+                div.style.display = 'none';
+            }
+        });
+
+
 
         /* ---------- Stepper ---------- */
         const updateStepper = () => {
@@ -588,6 +622,10 @@
                 if (!exists) { files[type][idx].push(f); }
             });
 
+
+
+
+
             renderFileList(type, idx);
             input.value = '';
         });
@@ -621,11 +659,29 @@
         function toggleAttachmentRequired(type, idx) {
             const valInput = document.querySelector(`.val-input[data-type="${type}"][data-index="${idx}"]`);
             const attLabel = document.getElementById(`${type}${idx}_attLabel`);
-            if (!valInput || !attLabel) return;
+            const fileInput = document.querySelector(`.up-input[data-type="${type}"][data-index="${idx}"]`);
+            const attachmentDiv = fileInput?.closest('.col-sm-9');
+            if (!valInput) return;
             const val = Number(valInput.value || 0);
             const isRequired = !(type === "lead" && idx === 1);
-            if (isRequired && val > 0) { attLabel.innerHTML = 'Attachment <span class="text-danger">*</span>'; }
-            else { attLabel.innerHTML = 'Attachment(s)'; }
+
+            const inputDiv = valInput.closest('.col-sm-3');
+            if (attachmentDiv) {
+                if (val === 0) {
+                    attachmentDiv.style.display = 'none';
+                    if (inputDiv) inputDiv.className = 'col-sm-12';
+                    files[type][idx] = [];
+                    renderFileList(type, idx);
+                } else {
+                    attachmentDiv.style.display = 'block';
+                    if (inputDiv) inputDiv.className = 'col-sm-3';
+                }
+            }
+
+            if (attLabel) {
+                if (isRequired && val > 0) { attLabel.innerHTML = 'Attachment <span class="text-danger">*</span>'; }
+                else { attLabel.innerHTML = 'Attachment(s)'; }
+            }
         }
 
         /* ---------- Validation ---------- */
@@ -644,13 +700,7 @@
                 const vals = document.querySelectorAll(`.val-input[data-type="${type}"]`);
                 let ok = true;
                 vals.forEach(v => {
-                    const idx = Number(v.dataset.index);
-                    const num = Number(v.value || 0);
-                    const hasFiles = (files[type][idx] && files[type][idx].length > 0);
-                    const list = document.getElementById(`${type}-list-${idx}`);
-                    const isRequired = !(type === 'lead' && idx === 1);
-                    if (isRequired && num > 0 && !hasFiles) { list.classList.add('is-invalid'); ok = false; }
-                    else { list.classList.remove('is-invalid'); }
+                    v.classList.remove('is-invalid');
                 });
                 if (!ok) { const firstBad = document.querySelector(`#section${step} .is-invalid`); if (firstBad) firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
                 return ok;
@@ -687,6 +737,7 @@
 
         /* ---------- Save ---------- */
         function saveForm(successMessage, callback = null) {
+            $('html, body').animate({ scrollTop: 0 }, 'slow');
             showLoader("Saving...");
             const form = document.getElementById('form');
             const formData = new FormData(form);
@@ -718,6 +769,7 @@
 
                     // Show SweetAlert instead of alert
                     Swal.fire({
+                        position: 'top',
                         icon: 'success',
                         title: 'Success!',
                         text: successMessage,
@@ -793,9 +845,13 @@
                 });
             });
 
-            document.getElementById('pv_division').innerText = getVal('division') || "-";
-            document.getElementById('pv_plant').innerText = getVal('plant') || "-";
-            document.getElementById('pv_department').innerText = getVal('department') || "-";
+            const divisionEl = document.getElementById('division');
+            const plantEl = document.getElementById('plant');
+            const departmentEl = document.getElementById('department');
+
+            document.getElementById('pv_division').innerText = divisionEl.options[divisionEl.selectedIndex]?.text || "-";
+            document.getElementById('pv_plant').innerText = plantEl.options[plantEl.selectedIndex]?.text || "-";
+            document.getElementById('pv_department').innerText = departmentEl.options[departmentEl.selectedIndex]?.text || "-";
             document.getElementById('pv_month').innerText = getVal('report_month') || "-";
             generatePreviewList("lead", "pvLeadList");
             generatePreviewList("lag", "pvLagList");

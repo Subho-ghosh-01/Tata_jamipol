@@ -26,7 +26,7 @@ class VendorholidayController extends Controller
         } elseif (Session::get('clm_role') == 'hr_dept') {
             $holiday_lists = DB::table('vendor_holiday_list')->orderBy('id', 'desc')->get();
         } else {
-            $holiday_lists = DB::table('vendor_holiday_list ')->where('vendor_id', Session::get('user_idSession'))->orderBy('id', 'desc')->get();
+            $holiday_lists = DB::table('vendor_holiday_list ')->where('created_by', Session::get('user_idSession'))->orderBy('id', 'desc')->get();
         }
         return view('admin.vendor_holiday.index', compact('holiday_lists'));
     }

@@ -3,17 +3,116 @@ use App\Division;
 use App\UserLogin;
 ?>
 
+
 <?php $__env->startSection('breadcrumbs'); ?>
     <li class="breadcrumb-item"><a href="<?php echo e(route('admin.dashboard')); ?>">Dashboard</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Vendor SILO Tanker Management / List</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Vendor SILO Tanker Management / List</li>
 <?php $__env->stopSection(); ?>
-<?php if(Session::get('user_sub_typeSession') == 5): ?>
-    return redirect('admin/dashboard');
-<?php else: ?>
-    <?php $__env->startSection('content'); ?>
+
+<?php $__env->startSection('content'); ?>
+    <?php if(Session::get('user_sub_typeSession') == 5): ?>
+        
+        <div class="alert alert-danger text-center my-5">
+            🚫 You don’t have permission to access this page.
+        </div>
+    <?php else: ?>
+        <style>
+            table.dataTable th {
+                white-space: nowrap;
+                /* Prevent line break */
+                text-align: center;
+                /* Optional: center align */
+                vertical-align: middle;
+            }
+        </style>
+        <style>
+            .modal-content {
+                border-radius: 8px;
+                border: none;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .modal-header {
+                background-color: #dc3545;
+                color: white;
+                border-radius: 8px 8px 0 0;
+            }
+
+            .form-label {
+                font-weight: 500;
+                color: #333;
+            }
+
+            .form-control {
+                border-radius: 4px;
+                border: 1px solid #ddd;
+            }
+
+            .form-control:focus {
+                border-color: #dc3545;
+                box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+            }
+
+            .btn {
+                border-radius: 4px;
+            }
+
+            .btn-xs {
+                padding: 0.15rem 0.4rem;
+                font-size: 0.75rem;
+                border-radius: 0.2rem;
+            }
+
+            .blink-arrow {
+                color: green;
+                font-size: 14px;
+                font-weight: bold;
+                animation: blinkArrow 1s infinite;
+            }
+
+            .blink-arrow1 {
+                color: red;
+                font-size: 14px;
+                font-weight: bold;
+                animation: blinkArrow 1s infinite;
+            }
+
+            @keyframes blinkArrow {
+                0% {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+
+                50% {
+                    opacity: 0;
+                    transform: translateX(3px);
+                }
+
+                100% {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+        </style>
+        <style>
+            .blink-arrow {
+                font-weight: bold;
+                animation: arrowBlink 1s infinite;
+                margin-right: 5px;
+                font-size: 1.2rem;
+            }
+
+            @keyframes arrowBlink {
+                50% {
+                    opacity: 0;
+                }
+            }
+        </style>
+
+
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2 mb-4">
-                <i class="fas fa-truck"></i> Vendor SILO Tanker Management / List
+                <i class="fas fa-truck"></i> Vendor SILO Tanker Management
             </h1>
 
             <div class="btn-toolbar mb-2 mb-md-0">
@@ -24,40 +123,9 @@ use App\UserLogin;
                     <i class="fas fa-spinner fa-spin me-2 d-none" id="spinnerIcon"></i>&nbsp;
                     <span id="uploadText">Create</span>
                 </a>
-                <style>
-                    .upload-btn i {
-                        transition: all 0.3s ease;
-                    }
-                </style>
-
-
-                <style>
-                    .upload-btn:hover .upload-icon {
-                        animation: bounceUpload 0.6s;
-                    }
-
-                    @keyframes bounceUpload {
-                        0% {
-                            transform: translateY(0);
-                        }
-
-                        30% {
-                            transform: translateY(-5px);
-                        }
-
-                        60% {
-                            transform: translateY(2px);
-                        }
-
-                        100% {
-                            transform: translateY(0);
-                        }
-                    }
-                </style>
-
-
             </div>
         </div>
+
         <div class="form-group-row">
             <div class="col-sm-12" style="text-align:center;">
                 <?php if(session()->has('message')): ?>
@@ -69,326 +137,328 @@ use App\UserLogin;
             </div>
         </div>
 
-        <div class="table-responsive ">
 
 
-            <table class="table table-striped table-sm" id="vms-table">
-                <thead>
-                    <tr>
-                        <th title="Serial Number">🔢 Sl. No</th>
-                        <th title="Name of the Vendor">🏭 Vendor Name</th>
-                        <th title="Division / Department">🏬 Division</th>
-                        <th title="Section within Division">🏷️ Section</th>
-                        <th title="Work Order Number">📄 Work-Order No</th>
-                        <th title="Current Status">📊 Status</th>
-                        <th title="Date & Time Created">🕒 Created</th>
-                        <th title="Available Actions">⚙️ Action</th>
-                    </tr>
-
-
-
-
-                </thead>
-                <tbody id="vms-table-body">
-                    <!-- Dynamic rows from JS -->
-                </tbody>
-            </table>
-
-        </div><!-- Loader Wrapper -->
-        <div id="data-loader" class="text-center my-4">
-            <style>
-                /* Center the loader */
-                #data-loader {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                }
-
-                /* Spinner animation */
-                .spin-loader {
-                    width: 60px;
-                    height: 60px;
-                    border: 6px solid rgba(0, 123, 255, 0.2);
-                    border-top-color: #007bff;
-                    border-radius: 50%;
-                    animation: spin 1s linear infinite;
-                }
-
-                @keyframes spin {
-                    0% {
-                        transform: rotate(0deg);
-                    }
-
-                    100% {
-                        transform: rotate(360deg);
-                    }
-                }
-
-                /* Blinking (fade in/out) loader text */
-                .loader-text {
-                    margin-top: 12px;
-                    font-size: 16px;
-                    color: #333;
-                    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-                    animation: fadeBlink 1.5s ease-in-out infinite;
-                }
-
-                @keyframes fadeBlink {
-
-                    0%,
-                    100% {
-                        opacity: 1;
-                    }
-
-                    50% {
-                        opacity: 0;
-                    }
-                }
-            </style>
-
-            <!-- Spinner -->
-            <div class="spin-loader"></div>
-
-            <!-- Animated Fading Text -->
-            <div class="loader-text">Loading data, please wait...</div>
-        </div>
-
-        <style>
-            .modal-header.bg-gradient {
-                background: linear-gradient(45deg, #dc3545, #ff6f61);
-            }
-
-            .modal-content.shadow-lg {
-                box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
-                border-radius: 15px;
-            }
-
-            .modal-body {
-                font-size: 1.1rem;
-                color: #333;
-                text-align: center;
-                padding: 30px 20px;
-            }
-
-            .btn-pill {
-                border-radius: 50px !important;
-                padding: 8px 20px;
-                font-weight: 500;
-            }
-        </style>
-
-        <div class="modal fade" id="returnPassModal" tabindex="-1" role="dialog" aria-labelledby="returnPassModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content shadow-lg">
-                    <div class="modal-header bg-gradient text-white">
-                        <h5 class="modal-title w-100 text-center" id="returnPassModalLabel">
-                            🔄 Surrender Vehicle Pass
-                        </h5>
-                        <button type="button" class="close text-white position-absolute" style="right: 15px;"
-                            data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true" style="font-size: 1.4rem;">&times;</span>
+        <div class="card mt-3">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="vendorTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#activeList"
+                            type="button" role="tab" aria-controls="activeList" aria-selected="true">
+                            ✅ Active Tankers
                         </button>
-                    </div>
-                    <div class="modal-body">
-                        <p>🚗 Are you sure you want to <strong>Surrender</strong> this vehicle pass?</p>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="inactive-tab" data-bs-toggle="tab" data-bs-target="#inactiveList"
+                            type="button" role="tab" aria-controls="inactiveList" aria-selected="false">
+                            ❌ Inactive Tankers
+                        </button>
+                    </li>
+                </ul>
+            </div>
 
+            <div class="card-body">
+                <div class="tab-content" id="vendorTabContent">
+                    <!-- Active List -->
+                    <div class="tab-pane fade show active" id="activeList" role="tabpanel" aria-labelledby="active-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm" id="activeTable">
+                                <thead>
+                                    <tr>
+                                        <th>🔢 Sl. No</th>
+                                        <th>🏭 Vendor Name</th>
+                                        <th>🏬 Division</th>
+                                        <th>🏷️ Section</th>
+                                        <th>📄 Work-Order No</th>
+                                        <th>📊 Status</th>
+                                        <th>🕒 Created</th>
+                                        <th>⚙️ Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php $__empty_1 = true; $__currentLoopData = $vms_lists->where('return_status', ''); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $list): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <tr>
+                                            <td><?php echo e($key + 1); ?></td>
+                                            <td><?php echo e($list->vendor_name); ?></td>
+                                            <td><?php echo e($list->division_name); ?></td>
+                                            <td><?php echo e($list->section); ?></td>
+                                            <td><?php echo e($list->work_order_no ?? '-'); ?></td>
+                                            <td>
+                                                <?php if($list->status == 'approve'): ?>
+                                                    <?php if($list->status == 'approve'): ?>
+                                                        <span class="blink-arrow text-success">➡</span>
+                                                        <span class="badge bg-success" style="color:white">Active</span>
+                                                    <?php else: ?>
+                                                        <span class="blink-arrow text-danger">➡</span>
+                                                        <span class="badge bg-danger" style="color:white">Inactive</span>
+                                                    <?php endif; ?>
+                                                <?php elseif($list->status == 'pending_with_inclusion_user'): ?>
+                                                    <span class="badge bg-success" style="color:white">Pending With Inclusion
+                                                        User</span>
+                                                <?php elseif($list->status == 'pending_with_safety'): ?>
+                                                    <span class="badge bg-success" style="color:white">Pending With Safety</span>
+
+
+                                                <?php endif; ?>
+                                            </td>
+
+                                            <td><?php echo e($list->created_datetime); ?></td>
+
+
+                                            <td>
+                                                <a href="<?php echo e(route('vendor_silo.edit_entry', $list->id)); ?>"
+                                                    class="btn btn-sm btn-primary">Details</a>
+
+                                                <?php if($list->status == 'draft'): ?>
+                                                    <a href="<?php echo e(route('vendor_silo.edit', $list->id)); ?>"
+                                                        class="btn btn-sm btn-warning">Edit</a>
+                                                <?php endif; ?>
+
+                                                <?php if($list->created_by == Session::get('user_idSession') && $list->return_status == ''): ?>
+                                                    <button type="button" class="btn btn-danger btn-sm d-flex align-items-center gap-1"
+                                                        data-id="<?php echo e($list->id); ?>" data-sl="<?php echo e($list->full_sl); ?>" data-bs-toggle="modal"
+                                                        data-bs-target="#exclusionModal">
+                                                        Exclude Silo Tanker
+                                                    </button>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted">No active records</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="modal-footer justify-content-center pb-4">
-                        <button type="button" class="btn btn-outline-secondary btn-pill" data-dismiss="modal">❌ Cancel</button>
-                        <form id="return-pass-form" method="POST" style="margin: 0;">
-                            <?php echo csrf_field(); ?>
-                            <input type="hidden" name="pass_id" id="returnPassId" value="">
-                            <button type="submit" class="btn btn-danger btn-pill">✅ Yes, Surrender</button>
-                        </form>
+
+                    <!-- Inactive List -->
+                    <div class="tab-pane fade" id="inactiveList" role="tabpanel" aria-labelledby="inactive-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm" id="inactiveTable">
+                                <thead>
+                                    <tr>
+                                        <th>🔢 Sl. No</th>
+                                        <th>🏭 Vendor Name</th>
+                                        <th>🏬 Division</th>
+                                        <th>🏷️ Section</th>
+                                        <th>📄 Work-Order No</th>
+                                        <th>📊 Status</th>
+                                        <th>🕒 Created</th>
+                                        <th>⚙️ Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php $__empty_1 = true; $__currentLoopData = $vms_lists->where('return_status', '!=', ''); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $list): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <tr>
+                                            <td><?php echo e($key + 1); ?></td>
+                                            <td><?php echo e($list->vendor_name); ?></td>
+                                            <td><?php echo e($list->division_name); ?></td>
+                                            <td><?php echo e($list->section); ?></td>
+                                            <td><?php echo e($list->work_order_no ?? '-'); ?></td>
+                                            <td>
+                                                <?php if($list->status == 'approve'): ?>
+                                                    <?php if($list->status == 'approve' && $list->return_status == ''): ?>
+                                                        <span class="blink-arrow text-success">➡</span>
+                                                        <span class="badge bg-success" style="color:white">Active</span>
+                                                    <?php else: ?>
+                                                        <span class="blink-arrow text-danger">➡</span>
+                                                        <span class="badge bg-danger" style="color:white">Inactive</span>
+                                                    <?php endif; ?>
+                                                <?php elseif($list->status == 'pending_with_inclusion_user'): ?>
+                                                    <span class="badge bg-warning" style="color:white">Pending With Inclusion
+                                                        User</span>
+                                                <?php elseif($list->status == 'pending_with_safety'): ?>
+                                                    <span class="badge bg-success" style="color:white">Pending With Safety
+                                                        Department</span>
+                                                <?php endif; ?>
+                                            </td>
+
+
+                                            <td><?php echo e($list->created_datetime); ?></td>
+
+                                            <td>
+                                                <a href="<?php echo e(route('vendor_silo.edit_entry', $list->id)); ?>"
+                                                    class="btn btn-sm btn-primary">Details</a>
+
+                                                <?php if($list->status == 'draft'): ?>
+                                                    <a href="<?php echo e(route('vendor_silo.edit', $list->id)); ?>"
+                                                        class="btn btn-sm btn-warning">Edit</a>
+                                                <?php endif; ?>
+
+
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted">No inactive records</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
 
+        
+        <div id="data-loader" class="text-center my-4">
+            <div class="spin-loader"></div>
 
-    <?php $__env->stopSection(); ?>
-    <?php $__env->startSection('scripts'); ?>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script>
-            $(document).ready(function () {
+        </div>
 
-                // Fix aria-hidden warning when closing modal
-                $('#returnPassModal').on('hide.bs.modal', function () {
-                    $(document.activeElement).blur();
-                });
 
-                $('#return-pass-form').on('submit', function (e) {
-                    e.preventDefault();
+        <!-- Modal -->
+        <div class="modal fade" id="exclusionModal" tabindex="-1" aria-labelledby="exclusionModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Exclude Silo Tanker</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="exclusionForm">
+                        <div class="modal-body">
+                            <div class="alert d-none" id="formAlert"></div>
+                            <input type="hidden" name="id" id="tanker_id">
+                            <div class="mb-3">
+                                <label class="form-label">Tanker SL Number</label>
+                                <input type="text" class="form-control" name="tanker_no" id="sl" required
+                                    placeholder="e.g., ST-001" readonly>
+                            </div>
 
-                    const form = $(this);
-                    const passId = $('#returnPassId').val();
-                    const button = form.find('button[type="submit"]');
+                            <div class="mb-3">
+                                <label class="form-label">Reason for Exclusion</label>
+                                <textarea class="form-control" name="reason" rows="3" required
+                                    placeholder="Enter reason..."></textarea>
+                            </div>
 
-                    // Disable button and show spinner
-                    button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Processing...');
 
-                    const formData = new FormData(this);
-                    formData.append('_token', '<?php echo e(csrf_token()); ?>'); // CSRF for Laravel
-                    formData.append('pass_id', passId); // Ensure pass_id is present
+                        </div>
 
-                    $.ajax({
-                        url: '<?php echo e(route("vms_ifream.update_surrender")); ?>',
-                        type: 'POST',
-                        data: formData,
-                        processData: false,
-                        contentType: false,
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" id="submitExclusion" class="btn btn-danger">
+                                <span class="btn-text">Submit Exclusion</span>
+                                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status"
+                                    aria-hidden="true"></span>
+                            </button>
 
-                        success: function (response) {
-                            console.log('SUCCESS:', response);
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php $__env->stopSection(); ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Pass Surrendered',
-                                text: response.message || 'Vehicle pass has been surrendered.',
-                            }).then(() => {
-                                $('#returnPassModal').modal('hide');
-                                location.reload();
-                            });
-                        },
+<?php $__env->startSection('scripts'); ?>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
-                        error: function (xhr) {
-                            console.error('ERROR:', xhr);
-
-                            let errorMsg = 'Something went wrong. Please try again.';
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                errorMsg = xhr.responseJSON.message;
-                            }
-
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Failed',
-                                text: errorMsg,
-                            });
-
-                            // Reset the button
-                            button.prop('disabled', false).html('✅ Yes, Surrender');
-                        }
-                    });
-                });
+    <!-- jQuery + DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#exclusionModal').on('show.bs.modal', function (event) {
+                let button = $(event.relatedTarget);   // Button that triggered modal
+                let tankerId = button.data('id');
+                let sl = button.data('sl');    // Extract info from data-* attribute
+                $('#tanker_id').val(tankerId);         // Set hidden input value
+                $('#sl').val(sl);
             });
-        </script>
-        <script>var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        </script>
+        });
+    </script>
 
-        <script>
-            function formatMonthYear(m) {
-                if (!m) return '';
-                const [year, month] = m.split('-');
-                const date = new Date(year, month - 1);
-                return date.toLocaleString('default', { month: 'long', year: 'numeric' }); // "February 2024"
+    <script>
+        $(document).ready(function () {
+            $('#activeTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true
+            });
+
+            $('#inactiveTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true
+            });
+        });
+    </script>
+
+
+
+
+    <script>
+        $(function () {
+            const $form = $("#exclusionForm");
+            const $button = $("#submitExclusion");
+            const $spin = $button.find(".spinner-border");
+            const $text = $button.find(".btn-text");
+
+            // When modal opens → copy tanker_id from button
+            $('#exclusionModal').on('show.bs.modal', function (event) {
+                let button = $(event.relatedTarget);
+                let tankerId = button.data('id');
+                $('#tanker_id').val(tankerId);
+            });
+
+            function setLoading(state) {
+                if (state) {
+                    $button.prop("disabled", true);
+                    $spin.removeClass("d-none");
+                    $text.text("Processing...");
+                } else {
+                    $button.prop("disabled", false);
+                    $spin.addClass("d-none");
+                    $text.text("Submit Exclusion");
+                }
             }
 
-            function formatDateTime(dtStr) {
-                if (!dtStr) return '';
-                const date = new Date(dtStr);
-                return date.toLocaleString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                }); // e.g. "01 Aug 2024, 01:45 PM"
-            }
+            $form.on("submit", function (e) {
+                e.preventDefault();
+                setLoading(true);
 
+                $.ajaxSetup({
+                    headers: { "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content") }
+                });
 
-            document.addEventListener('DOMContentLoaded', function () {
-                const loader = document.getElementById('data-loader');
-                fetch('<?php echo e(route("admin.vendor_mis.list")); ?>')
-                    .then(response => response.json())
-                    .then(data => {
-                        //console.log('Fetched Data:', data);
+                $.ajax({
+                    url: "<?php echo e(route('vendor_silo.returnsilo')); ?>",
+                    type: "POST",
+                    data: $form.serialize(),
+                    success: function (res) {
+                        $("#formAlert")
+                            .removeClass("d-none alert-danger")
+                            .addClass("alert alert-success")
+                            .text("Tanker excluded successfully!");
 
-                        if (data.status === 'ok' && Array.isArray(data.data)) {
-                            const tableBody = document.getElementById('vms-table-body');
-                            let rows = '';
-                            loader.style.display = 'none'; // Hide loader
-                            data.data.forEach((item, index) => {
-                                const statusLower = item.status?.toLowerCase() || '';
-                                const statusreturnLower = item.return_status?.toLowerCase() || '';
-                                const statusLabel = item.status
-                                    ? item.status.charAt(0).toUpperCase() + item.status.slice(1) +
-                                    (statusLower === 'approve' ? ' ✅' :
-                                        statusLower === 'return' ? ' ❌' :
-                                            statusLower === 'pending_with_safety' ? ' ⏳' : '')
-                                    : '';
-
-                                const actionClass =
-                                    statusLower === 'approve' ? 'btn-success' :
-                                        statusLower === 'return' ? 'btn-danger' :
-                                            statusLower === 'pending_with_safety' ? 'btn-warning' : 'btn-secondary';
-
-                                const actionLabel =
-                                    statusLower === 'approve' ? '📄 Details' :
-                                        statusLower === 'return' ? '✏️ Edit' :
-                                            statusLower === 'pending_with_safety' ? '⏳ Action' : '🔘 Action';
-
-                                let surrenderButton = '';
-                                if (statusLower === 'approve' && (statusreturnLower === '' || statusreturnLower === 'return')) {
-                                    surrenderButton = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <a href="/vendor_mis/edit_entry/${item.id}">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3 ms-2 ">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          🔁   Edit
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </button>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </a>`;
-                                } else {
-                                    surrenderButton = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <a href="/vendor_mis/edit_entry/${item.id}">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3 ms-2 ">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  🔁 Edit
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </button>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </a>`;
-                                }
-
-                                rows += `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <tr>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>${index + 1}</td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>${item.vendor_name}</td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>${item.division_name || ''}</td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>${item.department_name || ''}</td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>${formatMonthYear(item.month) || ''}</td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>${statusLabel}</td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>${formatDateTime(item.created_datetime) || ''}</td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <a href="/vendor_mis/${item.id}/edit">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <button class="btn btn-sm rounded-pill px-3 ms-2 ${actionClass}">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ${actionLabel}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </button>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </a>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${surrenderButton}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </td>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </tr>`;
-                            });
-
-                            tableBody.innerHTML = rows;
-                            $('#vms-table').DataTable();
-                        } else {
-                            console.warn('No data or invalid format');
-                        }
-                    })
-                    .catch(err => console.error('Error fetching data:', err));
+                        setTimeout(() => {
+                            bootstrap.Modal.getInstance(document.getElementById("exclusionModal")).hide();
+                            $form[0].reset();
+                            $("#formAlert").addClass("d-none");
+                        }, 1200);
+                    },
+                    error: function (xhr) {
+                        $("#formAlert")
+                            .removeClass("d-none alert-success")
+                            .addClass("alert alert-danger")
+                            .text(xhr.responseJSON?.message || "Something went wrong.");
+                    },
+                    complete: function () {
+                        setLoading(false);
+                    }
+                });
             });
-        </script>
+        });
+    </script>
 
-        <script>
-            $('#returnPassModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget);
-                var passId = button.data('id');
-                $(this).find('#returnPassId').val(passId);
-            });
-        </script>
-    <?php $__env->stopSection(); ?>
 
-<?php endif; ?>
+<?php $__env->stopSection(); ?>
 <?php echo $__env->make('admin.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\8.4 php\htdocs\jamipol\resources\views/admin/vendor_silo/index.blade.php ENDPATH**/ ?>

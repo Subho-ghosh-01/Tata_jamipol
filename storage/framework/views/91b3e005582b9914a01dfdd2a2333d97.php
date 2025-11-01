@@ -10,6 +10,12 @@ $vms_flow = DB::table('vehicle_pass_flow')->where('vehicle_pass_id', $vms->id)->
 $type = $vms->apply_by_type == '1' ? 'Employee' : 'Vendor';
 $not_required = $vms->apply_by_type == '1' ? '' : 'hidden';
 $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first();
+
+if($vms->created_by == Session::get('user_idSession') && $vms->status == 'return'){
+    $hide = "";
+}else{
+    $hide = "hidden";
+}
 ?>
 
 <meta charset="utf-8">
@@ -401,16 +407,15 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
         </div>
         <!-- Vehicle Type -->
         <div class="row g-3 mt-2">
-
-
-
-
-            <div class="col-md-12">
-                <label class="form-label">Vehicle Registration Date</label>
-                <input type="date" class="form-control hd" value="<?php echo e($vms->vehicle_registration_date); ?>"
-                    name="registration_date">
-            </div>
-        </div>
+    <div class="col-md-6">
+        <label class="form-label">Vehicle Registration Date - From</label>
+        <input type="date" class="form-control hd" value="<?php echo e($vms->vehicle_registration_date); ?>" name="registration_date">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Vehicle Registration Date - To</label>
+        <input type="date" class="form-control hd" value="<?php echo e($vms->registraction_to); ?>" name="registration_date_to">
+    </div>
+</div>
 
         <!-- PUC -->
         <div class="row g-3 mt-2">
@@ -498,7 +503,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
 
 
             <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm" style="font-size: 1.1rem;"
-                id="submit-btn">
+                id="submit-btn" >
                 <span id="spinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
                 <i class="fas fa-check-circle me-2" id="btn-icon"></i>
                 <span id="btn-text">Submit</span>
@@ -597,8 +602,8 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
             </div>
 
             <div class="text-center">
-                <button type="submit" class="btn btn-primary px-5 py-2 fw-semibold shadow-sm rounded-pill" id="submit-btn">
-                    <i class="fas fa-spinner fa-spin me-2 d-none" id="spinner"></i> <span id="btn-text"> Submit </span>
+                <button type="submit" class="btn btn-primary px-5 py-2 fw-semibold shadow-sm rounded-pill" id="submit-btn1">
+                    <i class="fas fa-spinner fa-spin me-2 d-none" id="spinner1"></i> <span id="btn-text1"> Submit </span>
                 </button>
             </div>
         </form>
@@ -662,9 +667,9 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
         e.preventDefault();
 
         const form = document.getElementById('hr_form');
-        const submitBtn = document.getElementById('submit-btn');
-        const spinner = document.getElementById('spinner');
-        const btnText = document.getElementById('btn-text');
+        const submitBtn = document.getElementById('submit-btn1');
+        const spinner = document.getElementById('spinner1');
+        const btnText = document.getElementById('btn-text1');
         const actionError = document.getElementById('action-error');
 
         const actionSelected = document.querySelector('input[name="action"]:checked');

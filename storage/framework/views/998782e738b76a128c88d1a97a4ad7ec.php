@@ -16,7 +16,7 @@ use App\Division;
 <?php if(!$attendanceTaken): ?>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            $('#attendanceNoteModal').modal('show');
+            $('#attendanceNoteModal').modal('hide');
         });
     </script>
 
@@ -91,7 +91,7 @@ use App\Division;
                     </a>
                 </div>
 
-                <div class="form-group mb-2">
+                <div class="form-group mb-2 " style="display:none">
                     <a href="<?php echo e(route('admin.daily_attendence_upload')); ?>" class="btn btn-success d-block text-start"
                         style="max-width: fit-content;">
                         <i class="fas fa-upload"></i> Daily Attendance Upload
@@ -115,12 +115,12 @@ use App\Division;
                             <th>Name</th>
                             <th>Days</th>
                             <th>Skill Rate</th>
-                            <th>Extra Hours</th>
+                           
                             <th>Basic+DA / Gross</th>
                             <th>PF Calculation</th>
                             <th>ESIC Calculation</th>
                             <th>Net Salary</th>
-                            <th>Bonus</th>
+                           
 
                         </tr>
                     </thead>
@@ -152,13 +152,12 @@ use App\Division;
                                 <td><?php echo e($row->Name); ?></td>
                                 <td><?php echo e($pnoStats[$row->PNo]->total_days ?? 0); ?></td>
                                 <td>₹<?php echo e($pnouser->skill_rate ?? 0); ?></td>
-                                <td><?php echo e(number_format($extra_hours, 2)); ?></td>
+                                
                                 <td>₹<?php echo e(number_format($basic_plus_da, 2) ?? 0); ?></td>
                                 <td>₹<?php echo e(number_format($pf, 2)); ?></td>
                                 <td>₹<?php echo e(number_format($esic, 2)); ?></td>
                                 <td>₹<?php echo e(number_format($net, 2)); ?></td>
-                                <td>₹<?php echo e(number_format($Bonus, 2)); ?> </td>
-                            </tr>
+                                
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="16" class="text-center no-records-row">

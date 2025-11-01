@@ -1,0 +1,688 @@
+﻿@{
+    Layout = null;
+}
+
+@model TSDPL_SAFETY_PORTAL.Models.SafetyObservation
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 shrink-to-fit=no" />
+    <title>Safety Observation Workforce Form</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="~/lib/resource/Tata_logo.svg" type="image/x-icon" />
+
+   @*  Old Links *@
+    @*  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.1/dist/css/adminlte.min.css" /> *@
+    @*     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" /> *@
+
+    <!-- Bootstrap CSS -->
+    <link href="~/lib/bootstrap5/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap5/css/bootstrap.rtl.min.css" rel="stylesheet" />
+
+    <!-- AdminLTE CSS -->
+    <link href="~/lib/adminlte3/css/adminlte.min.css" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+
+
+    <!-- Select2 CSS -->
+    <link rel="stylesheet" href="~/lib/select2/select2.css" />
+    <!-- jQuery UI -->
+    <link href="~/dist/jquery-ui/jquery-ui.css" rel="stylesheet">
+    <link href="@Url.Content("~/css/observationform.css")" rel="stylesheet" />
+</head>
+<body class="hold-transition form-container">
+    <div class="container py-5">
+        <div class="text-center mb-4">
+            <img src="~/dist/img/tspdl-logo.png" style="max-width:100%; height:2.5rem;" alt="Company Logo">
+            <br />
+            <img src="~/dist/img/eSurakshaLogo.png" class="mt-3" style="max-width:100%; height:5rem;" alt="Company Logo">
+        </div>
+        <!-- Hidden field for the Id -->
+
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form id="createSafetyObservationForm1" role="form" asp-controller="Safetyobservation" asp-action="Safetyobservationform" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <input type="hidden" id="UrlplantId" value="@ViewBag.PlantId" />
+                    <input type="hidden" name="formType" value="S" />
+                    <!-- Row 1 -->
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label for="typeofObserverDropdown" class="required">Type of Observer</label>
+                            <select asp-for="ObserverCategory" class="form-control" id="typeofObserverDropdown" required>
+                                <option value="">-- Select Category --</option>
+                                <option value="officer">Officer</option>
+                                <option value="associate">Associate</option>
+                                <option value="cw">Contract Worker</option>
+                                <option value="driver">Driver</option>
+                                <option value="visitor">Visitor</option>
+                            </select>
+                            <span asp-validation-for="ObserverCategory" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label for="PlantDropdown" class="required">Name of the Visiting Plant</label>
+                            <select asp-for="PlantId" class="form-control" asp-items="ViewBag.Plants" id="PlantDropdown" style="height:38px !important;" disabled>
+                                <option value="">-- Select a Plant --</option>
+                            </select>
+                            <span asp-validation-for="PlantId" class="text-danger"></span>
+                        </div>
+                        <input type="hidden" name="PlantId" value="@ViewBag.PlantId" />
+                    </div>
+
+                    <!-- Row 2 -->
+                    <div class="row">
+
+                        <div class="form-group col-md-6" id="ObserverDropdown1">
+                            <label for="observerName" class="required">Name of the Observer</label>
+                            <div class="loadingMessage text-muted" style="display: none; margin-top: 5px;">Loading, please wait...</div>
+                            <select asp-for="Name" class="form-control mb-2 d-block" id="ObserverDropdown" style="width: 100% !important;">
+                                <option value="">-- Select Observer name --</option>
+                            </select>
+                            <input asp-for="Other_observer_name" type="text" id="observerInput" class="form-control" placeholder="Enter other observer name here" style="display: none;">
+
+                        </div>
+
+                        <div class="form-group col-md-6" style="display: none;" id="driverVisitorobserverInput">
+                            <label for="Name" class="required">Observer Name</label>
+                            <input type="hidden" name="observerId" id="observerid" />
+                            <input asp-for="Name" type="text" id="driverVisitorobserverInput1" class="form-control" placeholder="Enter observer name">
+                        </div>
+
+
+
+                        <div class="form-group col-md-6" id="gatepassView" style="display: none;">
+                            <label for="gatepassNoInput" class="control-label">P No.</label>
+                            <input asp-for="PnoGatepassNo" id="gatepassNoInput" class="form-control" />
+                        </div>
+
+
+                        <!-- Vendor Name -->
+                        <div class="form-group col-md-6" id="vendorTransporterField" style="display:none;">
+                            <label for="VendorTransporterName" class="required d-block">Vendor Name</label>
+                            <div class="loadingMessage text-muted" style="display: none; margin-top: 5px;">Loading, please wait...</div>
+                            <!-- Dropdown -->
+                            <select asp-for="VendorTransporterName" class="form-control mb-2 d-block" id="vendorDropdown" style="width: 100% !important;">
+                                <option value="">-- Select Vendor Name --</option>
+                            </select>
+
+                            <!-- "Others" Input -->
+                            <input type="text" asp-for="Other_vendor_transporter_name" id="otherInput" class="form-control" placeholder="Enter vendor name" style="display: none;">
+                        </div>
+
+                        <!-- Other Transporter Name -->
+                        <div class="form-group col-md-6" id="TransporterField" style="display:none;">
+                            <label for="VendorTransporterName" id="DynamicLabel1" class="required d-block"></label>
+
+                            <!-- "Others" Input -->
+                            <input type="text" asp-for="VendorTransporterName" id="TransporterField1" class="form-control" placeholder="">
+                        </div>
+
+
+                        <div class="form-group col-md-6">
+                            <label for="LocationDropdown" class="required">Exact Location</label>
+                            <div class="loadingMessage text-muted" style="display: none; margin-top: 5px;">Loading, please wait...</div>
+                            <select asp-for="LocationId" class="form-control" id="LocationDropdown" required>
+                                <option value="">-- Select a Location --</option>
+                            </select>
+                            <input asp-for="Other_location_name" type="text" id="locationInput" class="form-control" placeholder="Enter other location name here" style="display: none;">
+                            <span asp-validation-for="LocationId" class="text-danger"></span>
+                        </div>
+
+                    </div>
+
+                    <!-- Row 4 -->
+                    <div class="row">
+                        <div class="form-group col-md-auto">
+                            <label for="language-selector" class="form-label">Select Language to Speak</label>
+                            <div class="input-group">
+                                <select asp-for="Language" id="language-selector" class="form-control" style="margin-right:10px;" required>
+                                    <option>--Please choose a language to start speaking--</option>
+                                    <option value="en">English</option>
+                                    <option value="hi">Hindi</option>
+                                    <option value="bn">Bengali</option>
+                                    <option value="or">Oriya</option>
+                                    <option value="te">Telugu</option>
+                                    <option value="mr">Marathi</option>
+                                    <option value="ta">Tamil</option>
+                                    <option value="gu">Gujarati</option>
+                                    <option value="ml">Malayalam</option>
+                                    <option value="kn">Kannada</option>
+                                    <option value="pa">Punjabi</option>
+                                    <option value="ur">Urdu</option>
+                                </select>
+                                <button id="start-btn" type="button" class="btn btn-primary btn-sm" style="margin-right:10px;">
+                                    <i class="fas fa-play" style="margin-right: 8px;"></i> Start Recording
+                                </button>
+                                <button id="stop-btn" type="button" disabled class="btn btn-danger btn-sm" style="display:none; margin-right:10px;">
+                                    <i class="fas fa-stop" style="margin-right: 8px;"></i> Stop Recording
+                                </button>
+                                <button id="download-audio" type="button" class="btn btn-warning btn-sm" style="display:none; margin-right:10px;">
+                                    <i class="fas fa-download" style="margin-right: 8px;"></i> Download Audio
+                                </button>
+                                <button id="play-audio" type="button" class="btn btn-info btn-sm" style="display:none; margin-right:10px;">
+                                    <i class="fas fa-play-circle btn-icon"></i> Play Voice
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Row 5 -->
+                    <div class="row">
+
+                        <div class="form-group col-md-6">
+                            <label for="result" class="form-label">Observation Details (Local Language)</label>
+                            <textarea asp-for="Details_local_language" rows="3" id="transcription" class="form-control" placeholder="Your local language speech will appear here..."></textarea>
+                            <div class="loader" id="loader" style="display: none"></div>
+                            <span asp-validation-for="Details_local_language" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="result" class="form-label required">Observation Details (English)</label>
+                            <textarea asp-for="Details" id="translation" rows="3" class="form-control" placeholder="Your english translation will appear here..." required></textarea>
+                            <div class="loader" id="loader" style="display: none"></div>
+                            <span asp-validation-for="Details" class="text-danger"></span>
+                        </div>
+                        <div class="loader" id="loader" style="display:none;"></div>
+                        <input type="file" asp-for="SpeechFile" id="audio-file-input" accept="audio/*" class="form-control" style="display:none;" />
+                    </div>
+
+                    <!-- Row 6 -->
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label for="DepartmentDropdown" class="required">Responsible Department To Close</label>
+                            <div class="loadingMessage text-muted" style="display: none; margin-top: 5px;">Loading, please wait...</div>
+                            <select asp-for="DepartmentId" class="form-control" asp-items="ViewBag.Departments" id="DepartmentDropdown" required>
+                                <option value="">-- Select a Department --</option>
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="DocumentFile" class="form-label">Upload Photo</label>
+                            <small>(maximum 2 photos)</small>
+                            <div class="custom-file">
+                                <input type="file" class="form-control-file" id="DocumentFile" name="DocumentFile" accept=".jpg, .jpeg, .png" multiple>
+                                <label for="DocumentFile" class="custom-file-label" id="fileLabel">Choose photos...</label>
+                            </div>
+                            <span id="fileError" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <!-- Image Preview Section -->
+                            <div id="filePreview" class="mt-2 d-flex flex-wrap">
+                                <!-- Previews of selected images will be shown here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="form-group text-center mt-4">
+                        <button type="submit" class="btn btn-primary px-5">Finish</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center small text-muted">Solutions by Anmoul Infomatics Pvt. Ltd.</div>
+        </div>
+    </div>
+
+    @if (ViewBag.Is_feedbackopen == 1)
+    {
+        <a href="@(ViewBag.formLink)" target="_blank" id="mascot"
+           class="feedback-button-bs btn btn-primary btn-lg rounded-start-0 rounded-end-3 px-4 py-2 shadow"
+           aria-label="Feedback form">
+            @ViewBag.formcontent
+        </a>
+    }
+
+
+       <!-- Loader Modal -->
+    <div class="modal" id="modal-loader" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999 !important;">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 bg-light">
+                <div class="modal-body text-center d-flex flex-column align-items-center justify-content-center">
+
+                    <img src="~/dist/img/eSurakshaLogo.png" alt="eSuruksha Logo" style="width:7rem; height:auto;">
+
+                    <h6 class="mt-3 fw-bold text-primary">Please Wait...</h6>
+                    <p class="text-muted small">Please wait while we process your request...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+   @*  Old JS File *@
+   @*  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.1/dist/js/adminlte.min.js"></script>
+ *@
+
+    <!-- jQuery -->
+    <script src="~/lib/jquery3/jquery.min.js"></script>
+
+    <!-- Bootstrap -->
+    <script src="~/lib/bootstrap5/js/bootstrap.bundle.min.js"></script>
+
+    <!-- AdminLTE -->
+    <script src="~/lib/adminlte3/js/adminlte.min.js"></script>
+
+    <!-- Select2 -->
+    <script src="~/lib/select2/select2.js"></script>
+    <!-- jQuery UI -->
+    <script src="~/dist/jquery-ui/jquery-ui.js"></script>
+    <!-- Swal -->
+    <script src="~/lib/swal/Swal.js"></script>
+
+    <!-- RecordRTC -->
+    <script src="https://www.webrtc-experiment.com/RecordRTC.js"></script>
+    <!-- SpeechtoText -->
+    <script src="~/dist/js/speechtotext.js"></script>
+
+    <script>
+        $(document).ready(function () {
+
+                $('#DocumentFile').on('change', function (e) {
+            const fileList = e.target.files;
+            const previewContainer = $('#filePreview');
+            previewContainer.empty(); // Clear previous previews
+            $('#fileError').text(''); // Clear previous error message
+
+            // Check if the number of files is less than or equal to 2
+            if (fileList.length > 2) {
+                $('#fileError').text('You can only upload a maximum of 2 photos.');
+                $(this).val(''); // Reset the input
+                return;
+            }
+
+            // Loop through selected files
+            $.each(fileList, function (index, file) {
+                // Validate if file is an image
+                if (!file.type.startsWith('image/')) {
+                    $('#fileError').text('Please select only image files.');
+                    $('#DocumentFile').val(''); // Reset the input
+                    return false;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    // Create a wrapper div for the image and delete button
+                    const imageWrapper = $('<div>')
+                        .addClass('d-inline-block position-relative m-2');
+
+                    // Create an image preview element
+                    const imgElement = $('<img>')
+                        .attr('src', event.target.result)
+                        .attr('alt', 'Image Preview')
+                        .addClass('img-thumbnail')
+                        .css({
+                            'max-width': '150px',
+                        });
+
+                    // Create a delete button for the image
+                    const deleteButton = $('<button>')
+                        .addClass('btn btn-danger btn-sm position-absolute')
+                        .css({
+                            top: '5px',
+                            right: '5px',
+                        })
+                        .html('<i class="fa fa-trash"></i>')
+                        .on('click', function () {
+                            imageWrapper.remove(); // Remove the specific image and its wrapper
+                        });
+
+                    // Append the image and delete button to the wrapper
+                    imageWrapper.append(imgElement).append(deleteButton);
+
+                    // Append the wrapper to the preview container
+                    previewContainer.append(imageWrapper);
+                };
+
+                reader.readAsDataURL(file); // Read the image file as a data URL
+            });
+        });
+
+
+
+            var UrlplantId = $('#UrlplantId').val();
+            $('#PlantDropdown,#DepartmentDropdown, #LocationDropdown, #ObserverDropdown, #vendorDropdown').select2();
+            $('#vendorTransporterField').hide();
+
+            var observerDropdown = $('#ObserverDropdown');
+            var departmentDropdown = $('#DepartmentDropdown');
+            var locationDropdown = $('#LocationDropdown');
+
+
+            var loadingMessage = $('.loadingMessage');
+
+            $('#PlantDropdown').change(function () {
+                var plantId = $(this).val();
+                departmentDropdown.empty().prop('disabled', true).append('<option value="">-- Select a Department --</option>');
+                locationDropdown.empty().prop('disabled', true).append('<option value="">-- Select a Location --</option>');
+                observerDropdown.empty().prop('disabled', true).append('<option value="">-- Select Observer name --</option>');
+                $('.select2-container .select2-selection').css({ 'height': '38px !important' });
+
+                $('#observerInput, #departmentInput, #locationInput').hide().val('');
+                loadingMessage.show();
+
+                var Category;
+                var previousCategory;
+                $("#typeofObserverDropdown").on("change", function () {
+                    Category = $(this).val();
+                    if (previousCategory !== undefined && previousCategory !== Category)
+                    {
+                         location.reload();
+                               return;
+                    }
+                     previousCategory = Category;
+                     if (Category === "officer")
+                     {
+                         window.location.href = '@Url.Action("SafetyobservationOfficerform", "Safetyobservation")';
+                     }
+
+                    $('#observerInput').hide().prop("required", false).val('');
+                    if (plantId)
+                    {
+                         if (Category === "employee") {
+                            observerDropdown.select2('destroy').empty();
+                            observerDropdown.append('<option value="">-- Select Observer name --</option>');
+
+                            $.getJSON('/Safetyobservation/GetObserverNames', { plantId: plantId }, function (NamesData) {
+                                $.each(NamesData, function (i, names) {
+                                    observerDropdown.append('<option value="' + names.name + '">' + names.name + '</option>');
+                                });
+                                observerDropdown.append('<option data-other="true" value="others">Others</option>');
+                                observerDropdown.prop('disabled', false);
+                                observerDropdown.select2();
+                                observerDropdown.on('select2:open', function () {
+                                    $('.select2-container--open .select2-selection').css({ 'height': '38px' });
+                                });
+                                $('.select2-container .select2-selection').css({ 'height': '38px' });
+                                handleOthersSelection('ObserverDropdown', 'observerInput');
+                            }).always(function () {
+                                loadingMessage.hide();
+                            });
+
+
+                        }
+                        else if (Category === "cw")
+                        {
+                            observerDropdown.select2('destroy').empty();
+                            observerDropdown.append('<option value="">-- Select Observer name --</option>');
+
+                            $.getJSON('/Safetyobservation/GetObserverNamesbasedonCW', { plantId: plantId }, function (NamesData) {
+                                $.each(NamesData, function (i, Observernames) {
+                                    observerDropdown.append('<option value="' + Observernames.name + '">' + Observernames.name + '</option>');
+                                });
+                                observerDropdown.append('<option data-other="true" value="others">Others</option>');
+                                observerDropdown.prop('disabled', false);
+                                observerDropdown.select2();
+                                observerDropdown.on('select2:open', function () {
+                                    $('.select2-container--open .select2-selection').css({ 'height': '38px' });
+                                });
+                                $('.select2-container .select2-selection').css({ 'height': '38px' });
+                                handleOthersSelection('ObserverDropdown', 'observerInput');
+                            }).always(function () {
+                                loadingMessage.hide();
+                            });
+                        }
+                        else if (Category === "associate")
+                        {
+                            observerDropdown.select2('destroy').empty();
+                            observerDropdown.append('<option value="">-- Select Observer name --</option>');
+
+                            $.getJSON('/Safetyobservation/GetObserverNamesbasedonassociate', { plantId: plantId }, function (NamesData) {
+                                $.each(NamesData, function (i, Observernames) {
+                                    observerDropdown.append('<option value="' + Observernames.name + '">' + Observernames.name + '</option>');
+                                });
+                                observerDropdown.append('<option data-other="true" value="others">Others</option>');
+                                observerDropdown.prop('disabled', false);
+                                observerDropdown.select2();
+                                observerDropdown.on('select2:open', function () {
+                                    $('.select2-container--open .select2-selection').css({ 'height': '38px' });
+                                });
+                                $('.select2-container .select2-selection').css({ 'height': '38px' });
+                                handleOthersSelection('ObserverDropdown', 'observerInput');
+                            }).always(function () {
+                                loadingMessage.hide();
+                            });
+                        }
+                    }
+                    else
+                    {
+                        loadingMessage.hide();
+                        observerDropdown.prop('disabled', true);
+                    }
+                });
+
+                if (plantId) {
+
+
+                    $.getJSON('/Safetyobservation/GetDepartments', { plantId: plantId }, function (departmentData) {
+                        departmentDropdown.select2('destroy').empty();
+                        departmentDropdown.append('<option value="">-- Select Department --</option>');
+                        $.each(departmentData, function (i, department) {
+                            departmentDropdown.append('<option value="' + department.id + '">' + department.departmentName + '</option>');
+                        });
+                        departmentDropdown.prop('disabled', false);
+                        departmentDropdown.select2();
+                        departmentDropdown.on('select2:open', function () {
+                            $('.select2-container--open .select2-selection').css({ 'height': '38px' });
+                        });
+                        $('.select2-container .select2-selection').css({ 'height': '38px' });
+                    }).always(function () {
+                        loadingMessage.hide();
+                    });
+
+                    $.getJSON('/Safetyobservation/GetLocations', { plantId: plantId }, function (locationData) {
+                        locationDropdown.select2('destroy').empty();
+                        locationDropdown.append('<option value="">-- Select Location --</option>');
+                        $.each(locationData, function (i, location) {
+                            locationDropdown.append('<option value="' + location.id + '">' + location.locationName + '</option>');
+                        });
+                        locationDropdown.append('<option value="49">Others</option>');
+                        locationDropdown.prop('disabled', false);
+                        locationDropdown.select2();
+                        locationDropdown.on('select2:open', function () {
+                            $('.select2-container--open .select2-selection').css({ 'height': '38px' });
+                        });
+                        $('.select2-container .select2-selection').css({ 'height': '38px' });
+                        locationDropdown.change(function () {
+                            var selectedLocation = $(this).val();
+                            if (selectedLocation === "49") {
+                                $('#locationInput').show().prop('required', true);
+                            } else {
+                                $('#locationInput').hide().prop('required', false).val('');
+                            }
+                        });
+                    }).always(function () {
+                        loadingMessage.hide();
+                    });
+                } else {
+                    loadingMessage.hide();
+                    departmentDropdown.prop('disabled', false);
+                    locationDropdown.prop('disabled', false);
+                }
+            });
+
+
+
+            if (UrlplantId) {
+                $('#PlantDropdown').val(UrlplantId).trigger('change').prop('disabled', true);
+            } else {
+                $('#PlantDropdown').prop('disabled', false);
+                $('#PlantDropdown').on('select2:open', function () {
+                    $('.select2-container--open .select2-selection').css({ 'height': '38px' });
+                });
+                $('.select2-container .select2-selection').css({ 'height': '38px' });
+            }
+
+
+            function handleOthersSelection(dropdownId, inputId) {
+                $(`#${dropdownId}`).on('change', function () {
+                    if ($(this).val().toLowerCase() === "others") {
+                        $(`#${inputId}`).show().prop("required", true);
+                    } else {
+                        $(`#${inputId}`).hide().prop("required", false).val('');
+                    }
+                });
+            }
+
+            handleOthersSelection('ObserverDropdown', 'observerInput');
+            handleOthersSelection('LocationDropdown', 'locationInput');
+
+            $("#typeofObserverDropdown").on("change", function () {
+
+                const currentCategory = $(this).val();
+                toggleVendorTransporterField(currentCategory);
+
+                $('#driverVisitorobserverInput1').prop('required', false);
+                if (currentCategory === "driver") {
+                    $('#DynamicLabel1').text('Transporter Name').next('input').attr('placeholder', 'Enter Transporter Name.');
+                    $('#driverVisitorobserverInput').show();
+                    $('#driverVisitorobserverInput1').prop('required', true);
+                    $('#ObserverDropdown1').hide();
+                    $('#ObserverDropdown').prop('required', false).val('');
+                    $('#TransporterField').show();
+                    $('#TransporterField1').prop('required', true);
+                } else if (currentCategory === "visitor") {
+                    $('#DynamicLabel1').text('Vendor Name').next('input').attr('placeholder', 'Enter Vendor Name.');
+                    $('#driverVisitorobserverInput').show();
+                    $('#driverVisitorobserverInput1').prop('required', true);
+                    $('#ObserverDropdown1').hide();
+                    $('#ObserverDropdown').prop('required', false).val('');
+                    $('#TransporterField').show();
+                    $('#TransporterField1').prop('required', true);
+                }
+                else {
+
+                    $('#driverVisitorobserverInput').hide();
+                    $('#driverVisitorobserverInput1').prop('required', false).val('');
+                    $('#TransporterField').hide();
+                    $('#TransporterField1').prop('required', false).val('');
+                    $('#ObserverDropdown1').show();
+                    $('#ObserverDropdown').prop('required', true);
+                }
+            });
+
+            function toggleVendorTransporterField(observerCategory) {
+                $('#vendorTransporterField').hide();
+                $('#vendorDropdown').prop("required", false).val('').empty();
+                $('#otherInput').hide().prop("required", false).val('');
+
+                if (observerCategory === "cw") {
+                    let vendorDropdown = $("#vendorDropdown");
+                    let otherInput = $('#otherInput');
+
+                    $("#ObserverDropdown").off("change").on("change", function () {
+                        var observerId = $(this).val();
+                        loadingMessage.show();
+                        vendorDropdown.select2('destroy').empty();
+                        vendorDropdown.append('<option value="">-- Select vendor --</option>');
+                        if (observerId) {
+                            $.getJSON('/Safetyobservation/GetVendorNames', { observerId: observerId }, function (NamesData) {
+                                $.each(NamesData, function (i, VendorNames) {
+                                    vendorDropdown.append('<option value="' + VendorNames.contractorName + '">' + VendorNames.contractorName + '</option>');
+                                });
+                                vendorDropdown.append('<option value="others">Others</option>');
+                                vendorDropdown.prop('disabled', false);
+                                vendorDropdown.select2();
+                                vendorDropdown.on('select2:open', function () {
+                                    $('.select2-container--open .select2-selection').css({ 'height': '38px' });
+                                });
+                                $('.select2-container .select2-selection').css({ 'height': '38px' });
+                            }).always(function () {
+                                loadingMessage.hide();
+                            });
+                        } else {
+                            vendorDropdown.empty();
+                            vendorDropdown.append('<option value="others">Others</option>');
+                            vendorDropdown.prop('disabled', true);
+                            loadingMessage.hide();
+                        }
+                    });
+
+                    vendorDropdown.off("change").on("change", function () {
+                        if ($(this).val() === "others") {
+                            otherInput.show().prop("required", true);
+                        } else {
+                            otherInput.hide().prop("required", false).val('');
+                        }
+                    });
+                }
+
+                if (observerCategory === 'cw') {
+                    $('#vendorTransporterField').show();
+                    $('#vendorDropdown').prop("required", true);
+                    const otherInputVisible = $('#vendorDropdown').val() === 'others';
+                    $('#otherInput').toggle(otherInputVisible).prop("required", otherInputVisible);
+                }
+            }
+
+            $('#vendorDropdown').on('change', function () {
+                const isOthersSelected = $(this).val() === 'others';
+                $('#otherInput').toggle(isOthersSelected).prop("required", isOthersSelected);
+            });
+
+            $("#createSafetyObservationForm1").on("submit", function (e) {
+                e.preventDefault();
+                const submitButton = $('button[type="submit"]');
+                const originalButtonText = submitButton.text();
+                submitButton.prop('disabled', true).text('Processing...');
+                $('#modal-loader').modal('show');
+
+                var formData = new FormData(this);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("Safetyobservationform", "Safetyobservation")',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        $('#modal-loader').modal('hide');
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Submitted Successfully',
+                                html: `<p>Your observation has been sent to <strong>${response.userName}</strong></p>
+                                       <p><strong>Reference No:</strong> ${response.referenceNo}</p>`,
+                                confirmButtonText: 'OK',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                window.location.href = '@Url.Action("Thankyoupage", "Safetyobservation")';
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: response.message || 'An error occurred while filling the safety form.',
+                                confirmButtonText: 'OK',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        }
+                    },
+                    error: function () {
+                        $('#modal-loader').modal('hide');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'An error occurred. Please try again later.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
+

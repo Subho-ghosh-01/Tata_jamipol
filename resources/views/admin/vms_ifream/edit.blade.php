@@ -10,6 +10,12 @@ $vms_flow = DB::table('vehicle_pass_flow')->where('vehicle_pass_id', $vms->id)->
 $type = $vms->apply_by_type == '1' ? 'Employee' : 'Vendor';
 $not_required = $vms->apply_by_type == '1' ? '' : 'hidden';
 $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first();
+
+if($vms->created_by == Session::get('user_idSession') && $vms->status == 'return'){
+    $hide = "";
+    }else{
+        $hide ="hidden";
+    }
 ?>
 
 <meta charset="utf-8">
@@ -360,7 +366,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
             </div>
             <div class="col-md-12">
                 <label class="form-label">Insurance Valid To</label>
-                <input type="date" class="form-control hd" value="{{ $vms->insurance_valid_to }}" name="insurance_to">
+                <input type="date" class="future-date form-control hd" value="{{ $vms->insurance_valid_to }}" name="insurance_to">
 
                 <label class="mt-2 dn">Upload Insurance Document</label>
                 <div class="dropzone-wrapper dropzone dn">
@@ -400,17 +406,17 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
             </select>
         </div>
         <!-- Vehicle Type -->
-        <div class="row g-3 mt-2">
+       <div class="row g-3 mt-2">
+    <div class="col-md-6">
+        <label class="form-label">Vehicle Registration Date - From</label>
+        <input type="date" class="form-control hd" value="{{ $vms->vehicle_registration_date }}" name="registration_date">
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Vehicle Registration Date - To</label>
+        <input type="date" class="form-control hd future-date" value="{{ $vms->registraction_to }}" name="registration_date_to">
+    </div>
+</div>
 
-
-
-
-            <div class="col-md-12">
-                <label class="form-label">Vehicle Registration Date</label>
-                <input type="date" class="form-control hd" value="{{ $vms->vehicle_registration_date }}"
-                    name="registration_date">
-            </div>
-        </div>
 
         <!-- PUC -->
         <div class="row g-3 mt-2">
@@ -420,7 +426,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
             </div>
             <div class="col-md-12">
                 <label class="form-label">PUC Valid To</label>
-                <input type="date" class="form-control hd" value="{{ $vms->puc_valid_to }}" name="puc_to">
+                <input type="date" class="form-control hd future-date" value="{{ $vms->puc_valid_to }}" name="puc_to">
             </div>
             <div class="col-md-12 dn">
                 <label class="mt-2">Upload PUC Document </label>
@@ -469,7 +475,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
             </div>
             <div class="col-md-12">
                 <label class="form-label">License Valid To</label>
-                <input type="date" class="form-control hd" value="{{ $vms->license_valid_to }}" name="license_valid_to">
+                <input type="date" class="form-control hd future-date" value="{{ $vms->license_valid_to }}" name="license_valid_to">
             </div>
             <div class="col-md-12 dn">
                 <label class="mt-2">Upload Driving License</label>
@@ -493,7 +499,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
 
 
 
-        <div class="text-center mt-4 dn">
+        <div class="text-center mt-4 dn "{{$hide}}>
 
 
 
@@ -511,6 +517,55 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
 
 
 </form>
+<script>
+    document.getElementById('form_return').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submit-btn');
+        const spinner = document.getElementById('spinner');
+        const btnText = document.getElementById('btn-text');
+
+        // Show loading state
+        submitBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.innerText = 'Processing...';
+
+        // Prepare FormData (includes file input)
+        const form = document.getElementById('form_return');
+        const formData = new FormData(form);
+
+        fetch('{{ route("vms_ifream.update_return") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                // Do NOT set 'Content-Type': multipart/form-data — fetch sets it automatically
+            },
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                Swal.fire('Success', data.message, 'success').then((result) => {
+                    if (result.isConfirmed || result.isDismissed) {
+                        location.reload(); // Reload the page
+                    }
+                })
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'An unexpected error occurred!'
+                });
+
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+                btnText.innerText = 'Submit';
+            });
+    });
+</script>
 @php
     $vehiclePassFlows = DB::table('vehicle_pass_flow')
         ->where('vehicle_pass_id', $vms->id)
@@ -597,74 +652,27 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
             </div>
 
             <div class="text-center">
-                <button type="submit" class="btn btn-primary px-5 py-2 fw-semibold shadow-sm rounded-pill" id="submit-btn">
-                    <i class="fas fa-spinner fa-spin me-2 d-none" id="spinner"></i> <span id="btn-text"> Submit </span>
-                </button>
-            </div>
+    <button type="submit" class="btn btn-primary px-5 py-2 fw-semibold shadow-sm rounded-pill" id="submit-btn1">
+        <span id="btn-text1">Submit</span>
+        <i class="fas fa-spinner fa-spin ms-2 d-none" id="spinner1"></i>
+    </button>
+</div>
         </form>
     </div>
 @endif
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <!-- Add this in your <head> or just before closing </body> tag -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    document.getElementById('form_return').addEventListener('submit', function (e) {
-        e.preventDefault();
 
-        const submitBtn = document.getElementById('submit-btn');
-        const spinner = document.getElementById('spinner');
-        const btnText = document.getElementById('btn-text');
-
-        // Show loading state
-        submitBtn.disabled = true;
-        spinner.classList.remove('d-none');
-        btnText.innerText = 'Processing...';
-
-        // Prepare FormData (includes file input)
-        const form = document.getElementById('form_return');
-        const formData = new FormData(form);
-
-        fetch('{{ route("vms_ifream.update_return") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                // Do NOT set 'Content-Type': multipart/form-data — fetch sets it automatically
-            },
-            body: formData
-        })
-            .then(res => res.json())
-            .then(data => {
-                Swal.fire('Success', data.message, 'success').then((result) => {
-                    if (result.isConfirmed || result.isDismissed) {
-                        location.reload(); // Reload the page
-                    }
-                })
-            })
-            .catch(err => {
-                console.error(err);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message || 'An unexpected error occurred!'
-                });
-
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.innerText = 'Submit';
-            });
-    });
-</script>
 <script>
 
     document.getElementById('hr_form').addEventListener('submit', function (e) {
         e.preventDefault();
 
         const form = document.getElementById('hr_form');
-        const submitBtn = document.getElementById('submit-btn');
-        const spinner = document.getElementById('spinner');
-        const btnText = document.getElementById('btn-text');
+        const submitBtn = document.getElementById('submit-btn1');
+        const spinner = document.getElementById('spinner1');
+        const btnText = document.getElementById('btn-text1');
         const actionError = document.getElementById('action-error');
 
         const actionSelected = document.querySelector('input[name="action"]:checked');
@@ -795,7 +803,52 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
     // Initial check
     document.querySelector(".puc").style.display = "block";
 </script>
+<script>// Tomorrow's date
+    function getTomorrow() {
+        const t = new Date();
+        t.setDate(t.getDate() + 1);
+        return t.toISOString().split("T")[0];
+    }
 
+    const tomorrow = getTomorrow();
+
+    // Restrict only future-date inputs
+    document.querySelectorAll('input.future-date').forEach(input => {
+        input.setAttribute("min", tomorrow);
+
+        // Validate typed input
+        input.addEventListener("blur", function () {
+            if (this.value && this.value < tomorrow) {
+                alert("Past dates are not allowed!");
+                this.value = tomorrow; // reset to tomorrow if invalid
+            }
+        });
+    });
+
+    // Handle "from" -> "to" only if from input is future-date
+    document.querySelectorAll('input.future-date[data-date="from"]').forEach(fromInput => {
+        fromInput.addEventListener("change", function () {
+            const toInputName = this.name.replace("from", "to");
+            const toInput = document.querySelector(`input[name="${toInputName}"]`);
+            if (toInput) {
+                toInput.setAttribute("min", this.value);
+
+                if (!toInput.value || toInput.value < this.value) {
+                    toInput.value = this.value;
+                }
+            }
+        });
+
+        fromInput.addEventListener("blur", function () {
+            const toInputName = this.name.replace("from", "to");
+            const toInput = document.querySelector(`input[name="${toInputName}"]`);
+            if (toInput && toInput.value < this.value) {
+                toInput.value = this.value;
+            }
+        });
+    });
+
+</script>
 
 
 

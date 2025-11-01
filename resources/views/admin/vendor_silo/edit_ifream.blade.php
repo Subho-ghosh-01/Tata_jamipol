@@ -2,8 +2,8 @@
 use App\Division;
 use App\Department;
 use App\UserLogin;
-$vms = DB::table('vendor_mis')->where('id', $vms_details->id)->first();
-$vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis_id', $vms->id)->where('status', 'N')->orderBy('id', 'asc')->first();
+$vms = DB::table('vendor_silo')->where('id', $vms_details->id)->first();
+$vms_flow = DB::table('vendor_silo_flow')->where('vendor_silo_id', $vms->id)->where('status', 'N')->orderBy('id', 'asc')->first();
 
 $vehicle_status = $vms->status;
 $vendor_level = $vms_flow->level ?? 'NA';
@@ -33,1355 +33,1869 @@ $vendor_level = $vms_flow->level ?? 'NA';
 
 
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <style>
-    .animated-hr {
-        border: none;
-        border-top: 2px solid #afbdd3;
-        width: 0;
-        margin-left: auto;
-        /* push line to the right */
-        margin-right: 0;
-        animation: expandLineRightToLeft 2s forwards;
-        /* Make the origin of the width expansion from right */
-        transform-origin: right;
+    @media (min-width: 992px) {
+
+        .container,
+        .container-lg,
+        .container-md,
+        .container-sm {
+            max-width: 1050px;
+        }
+    }
+</style>
+
+
+
+<style>
+    .file-upload-container.has-file {
+    border: 2px solid green;
+    background: #eaffea;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        position: relative;
     }
 
+    .step-indicator:before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e0e0e0;
+        z-index: 1;
+    }
 
-    @keyframes expandLineRightToLeft {
+    .step {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        width: 100%;
+    }
+
+    .step .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e0e0e0;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-weight: bold;
+    }
+
+    .step.active .step-number {
+        background: #0d6efd;
+    }
+
+    .step.completed .step-number {
+        background: #198754;
+    }
+
+    .step-label {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .step.active .step-label,
+    .step.completed .step-label {
+        color: #212529;
+        font-weight: 500;
+    }
+
+    .form-step {
+        display: none;
+    }
+
+    .form-step.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
         to {
-            width: 1020px;
+            opacity: 1;
         }
     }
-</style>
 
-<script>
-    var vehicleStatus = "{{ $vehicle_status }}";
-    var vendor_level = "{{$vendor_level}}";
-    $(document).ready(function () {
-
-        if (vehicleStatus === "pending_with_safety" && vendor_level != '0') {
-            // Hide elements
-            $('.dn').addClass('d-none');
-            $('.hd').prop('disabled', true).addClass('disabled');
-        } else if (vehicleStatus === "approve") {
-            // Hide everything (same as above, or customize as needed)
-            $('.dn').addClass('d-none');
-            $('.hd').prop('disabled', true).addClass('disabled');
-        } else if (vehicleStatus === "return") {
-
-            document.addEventListener('DOMContentLoaded', function () {
-                const dropzones = document.querySelectorAll('.file-dropzone');
-                const MAX_FILE_SIZE_MB = 2;
-
-                dropzones.forEach(dropzone => {
-                    const fileInputId = dropzone.getAttribute('data-target');
-                    const fileInput = document.getElementById(fileInputId);
-
-                    // Create error message container if not exists
-                    let messageBox = dropzone.querySelector('.error-message');
-                    if (!messageBox) {
-                        messageBox = document.createElement('div');
-                        messageBox.classList.add('error-message');
-                        messageBox.style.color = 'red';
-                        messageBox.style.fontSize = '0.85em';
-                        messageBox.style.marginTop = '5px';
-                        dropzone.appendChild(messageBox);
-                    }
-
-                    const showError = (msg) => {
-                        messageBox.textContent = msg;
-                        dropzone.classList.remove('success');
-                        dropzone.querySelector('span').textContent = "Drag & drop PDF here or click to upload";
-                        fileInput.value = ''; // Clear input
-                    };
-
-                    const clearError = () => {
-                        messageBox.textContent = '';
-                    };
-
-                    dropzone.addEventListener('click', () => fileInput.click());
-
-                    fileInput.addEventListener('change', () => {
-                        const file = fileInput.files[0];
-                        if (file) {
-                            if (file.type !== "application/pdf") {
-                                showError("Only PDF files are allowed.");
-                            } else if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-                                showError("File size exceeds 2MB limit.");
-                            } else {
-                                dropzone.querySelector('span').textContent = file.name;
-                                dropzone.classList.add('success');
-                                clearError();
-                            }
-                        } else {
-                            dropzone.classList.remove('success');
-                            showError("No file selected.");
-                        }
-                    });
-
-                    dropzone.addEventListener('dragover', e => {
-                        e.preventDefault();
-                        dropzone.classList.add('dragover');
-                    });
-
-                    dropzone.addEventListener('dragleave', () => {
-                        dropzone.classList.remove('dragover');
-                    });
-
-                    dropzone.addEventListener('drop', e => {
-                        e.preventDefault();
-                        dropzone.classList.remove('dragover');
-                        const file = e.dataTransfer.files[0];
-
-                        if (file) {
-                            if (file.type !== "application/pdf") {
-                                showError("Only PDF files are allowed.");
-                                return;
-                            }
-                            if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-                                showError("File is too large. Maximum allowed size is 2MB.");
-                                return;
-                            }
-
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
-                            fileInput.files = dataTransfer.files;
-
-                            dropzone.querySelector('span').textContent = file.name;
-                            dropzone.classList.add('success');
-                            clearError();
-                        } else {
-                            showError("No file dropped.");
-                        }
-                    });
-                });
-
-                // Automatically trigger input logic on load + on change
-                const numericInputs = document.querySelectorAll('.indicator-value');
-
-                numericInputs.forEach(function (input) {
-                    input.addEventListener('input', function () {
-                        const formGroup = input.closest('.form-group');
-                        const attachmentInput = formGroup.querySelector('input[type="file"]');
-                        const attachmentLabel = formGroup.querySelectorAll('label')[1];
-
-                        // Remove existing star
-                        const existingStar = attachmentLabel.querySelector('.mandatory-star');
-                        if (existingStar) existingStar.remove();
-
-                        const value = parseInt(input.value || 0);
-                        const star = document.createElement('span');
-                        star.classList.add('text-danger', 'mandatory-star');
-
-                        if (value > 0) {
-                            star.innerHTML = '<strong>* </strong>&nbsp;(Please upload a file not larger than 2MB)';
-                            attachmentLabel.appendChild(star);
-                            attachmentInput.removeAttribute('disabled');
-                            attachmentInput.setAttribute('', '');
-                        } else {
-                            star.innerHTML = '&nbsp;(Not Required to upload file)';
-                            attachmentLabel.appendChild(star);
-                            attachmentInput.removeAttribute('required');
-                            attachmentInput.setAttribute('disabled', 'disabled');
-                        }
-                    });
-
-                    // ✅ Call input handler on load to apply logic
-                    input.dispatchEvent(new Event('input'));
-                });
-            });
-
-
-        } else {
-
-
-        }
-    });
-</script>
-
-
-<form action="" method="post" enctype="multipart/form-data" id="form" autocomplete="off" id="form">
-    @csrf
-
-    <input type="hidden" value="{{$vms->id}}" name="vendor_mis_id">
-
-    <div class="container mt-4 pb-4">
-        <div class="text my-4">
-            <h3 class="fw-bold text-dark">
-                <i class="fas fa-id-card-alt me-2 text-primary"></i>
-                Vendor Safety MIS
-            </h3>
-
-            <div style="display: flex; align-items: center;">
-                <i class="vehicle" style="color: #afbdd3; font-size: 24px; margin-right: 10px;"></i>
-                <hr class="animated-hr" />
-            </div>
-
-
-        </div>
-
-        <style>
-            .small {
-                font-size: smaller;
-                font-weight: bold;
-                background: linear-gradient(90deg, #6b5c5c, #c73b11, #a00e0e);
-                background-size: 200% auto;
-                background-clip: text;
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                animation: shine 5s linear infinite;
-                display: inline-block;
-            }
-
-            @keyframes shine {
-                0% {
-                    background-position: -200% center;
-                }
-
-                100% {
-                    background-position: 200% center;
-                }
-            }
-        </style>
-        <style>
-            .file-dropzone {
-                border: 2px dashed #ccc;
-                border-radius: 5px;
-                padding: 10px;
-                text-align: center;
-                cursor: pointer;
-                transition: border-color 0.3s, background-color 0.3s;
-            }
-
-            .file-dropzone.dragover {
-                background-color: #f0f0f0;
-                border-color: #999;
-            }
-
-            .file-dropzone.success {
-                border-color: #28a745 !important;
-                background-color: #e6ffed;
-                color: #28a745;
-            }
-        </style>
-
-
-
-
-
-
-
-
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-            .file-dropzone {
-                border: 2px dashed #007bff;
-                border-radius: 6px;
-                padding: 20px;
-                text-align: center;
-                color: #6c757d;
-                cursor: pointer;
-                margin-top: 10px;
-                transition: background-color 0.3s;
-            }
-
-            .file-dropzone.dragover {
-                background-color: #e9f5ff;
-                border-color: #0056b3;
-                color: #0056b3;
-            }
-
-            .file-dropzone span {
-                display: block;
-            }
-
-            .form-group {
-                margin-bottom: 1.5rem;
-            }
-
-            .mandatory-star {
-                margin-left: 4px;
-            }
-        </style>
-        </head>
-
-        <div class="lead-indicators mt-4">
-            <h5 class="fw-bold">Basic Details:</h5>
-            <div class="row">
-
-
-                <div class="form-group col-3">
-                    <label for="division">
-                        Division <span class="text-danger"><strong>*</strong></span>
-                    </label>
-                     <select class="form-control indicator-value hd" name="division" id="division" required>
-                        <option value="">Select Division</option>
-                        @if($divs->count() > 0)
-                            @foreach($divs as $division)
-                                <option value="{{ $division->id }}" {{ ($vms->division_id ?? '') == $division->id ? 'selected' : '' }}>
-                                    {{ $division->name }}
-                                </option>
-                            @endforeach
-                        @endif
-                    </select>
-                </div>
-                <div class="form-group col-3">
-    <label for="plant">
-        Plant <span class="text-danger"><strong>*</strong></span>
-    </label>
-    <select class="form-control indicator-value hd" name="plant" id="plant" required>
-        <option value="">Select Plant</option>
-        {{-- This will be auto-populated by jQuery --}}
-    </select>
-</div>
-                <div class="form-group col-3">
-    <label for="department">
-        Department <span class="text-danger"><strong>*</strong></span>
-    </label>
-    <select class="form-control indicator-value hd" name="department" id="department" required>
-        <option value="">Select Department</option>
-        {{-- This will be auto-populated by jQuery --}}
-    </select>
-</div>
-
-
-                <div class="form-group col-3">
-                    <label for="month">
-                        Month <span class="text-danger"><strong>*</strong></span>
-                    </label>
-                    <input type="month" class="form-control indicator-value hd" name="month" id="month"
-                        value="{{$vms->month}}" required>
-                </div>
-            </div>
-        </div>
-<script>
-    $(document).ready(function () {
-        var selectedDivision = "{{ $vms->division_id ?? '' }}";
-        var selectedPlant = "{{ $vms->plant_id ?? '' }}";
-        var selectedDepartment = "{{ $vms->department_id ?? '' }}";
-
-        function loadPlants(divisionID, callback) {
-            $("#plant").html('<option value="">Select Plant</option>');
-            $("#department").html('<option value="">Select Department</option>');
-
-            if (!divisionID) return;
-
-            $.ajax({
-                type: 'GET',
-                url: "{{ route('admin.departmentGet_vendor_mis') }}/" + divisionID,
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, item) {
-                        var selected = (item.id == selectedPlant) ? 'selected' : '';
-                        $("#plant").append('<option value="' + item.id + '" ' + selected + '>' + item.name + '</option>');
-                    });
-                    if (callback) callback();
-                }
-            });
-        }
-
-        function loadDepartments(plantID) {
-            $("#department").html('<option value="">Select Department</option>');
-
-            if (!plantID) return;
-
-            $.ajax({
-                type: 'GET',
-                url: "{{ route('admin.PlantGet_vendor_mis') }}/" + plantID,
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, item) {
-                        var selected = (item.id == selectedDepartment) ? 'selected' : '';
-                        $("#department").append('<option value="' + item.id + '" ' + selected + '>' + item.department_name + '</option>');
-                    });
-                }
-            });
-        }
-
-        // On change of division
-        $('#division').on('change', function () {
-            var divisionID = $(this).val();
-            selectedPlant = ""; // reset selected plant on manual change
-            selectedDepartment = ""; // reset selected dept
-            loadPlants(divisionID);
-        });
-
-        // On change of plant
-        $('#plant').on('change', function () {
-            var plantID = $(this).val();
-            selectedDepartment = ""; // reset selected dept on manual change
-            loadDepartments(plantID);
-        });
-
-        // Auto-load if editing existing record
-        if (selectedDivision) {
-            loadPlants(selectedDivision, function () {
-                if (selectedPlant) {
-                    loadDepartments(selectedPlant);
-                }
-            });
-        }
-    });
-</script>
-
-        <div class="lead-indicators mt-4">
-
-            <h5 class="fw-bold">Lead Indicators:</h5>
-
-            <!-- Lead indicators 1 to 10 -->
-            <!-- Only change index, names, ids and data-targets accordingly -->
-
-            <!-- Template -->
-            <!-- Repeat and adjust accordingly -->
-            <!-- Example for each lead indicator -->
-
-            <div class="form-group">
-                <label>
-                    1. Safety Training Session Conducted During The Month
-                    <span class="text-danger"><strong>*</strong></span>
-                </label>
-
-                <input type="number" class="form-control indicator-value hd" name="lead1_val" id="lead1_val" min="0"
-                    required value="{{$vms->lead1_val}}">
-                <label class="mt-2 ">Attachment</label>
-                @if(!empty($vms->lead1_doc))
-                    <div class="mb-2">
-                        <a href="{{ asset($vms->lead1_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead1_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead1_doc" id="lead1_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>2. Total Training Employee Hours <span class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead2_val" id="lead2_val" min="0"
-                    value="{{$vms->lead2_val}}" required>
-                <label class="mt-2">Attachment</label>
-                @if(!empty($vms->lead2_doc))
-                    <div class="mb-2 ">
-                        <a href="{{ asset($vms->lead2_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead2_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead2_doc" id="lead2_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>3. No of Mass Meeting Conducted <span class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead3_val" id="lead3_val" min="0"
-                    value="{{$vms->lead3_val}}" required>
-                <label class="mt-2">Attachment</label>
-                @if(!empty($vms->lead3_doc))
-                    <div class="mb-2 dn">
-                        <a href="{{ asset($vms->lead3_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead3_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead3_doc" id="lead3_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>4. No of Line Walk Conducted <span class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead4_val" id="lead4_val" min="0"
-                    value="{{$vms->lead4_val}}" required>
-                <label class="mt-2">Attachment</label>
-                @if(!empty($vms->lead4_doc))
-                    <div class="mb-2 ">
-                        <a href="{{ asset($vms->lead4_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead4_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead4_doc" id="lead4_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>5. No of Site Safety Audit Conducted <span class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead5_val" id="lead5_val" min="0"
-                    value="{{$vms->lead5_val}}" required>
-                <label class="mt-2">Attachment</label>
-                @if(!empty($vms->lead5_doc))
-                    <div class="mb-2 ">
-                        <a href="{{ asset($vms->lead5_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead5_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead5_doc" id="lead5_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>6. No of Housekeeping Audit Conducted <span class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead6_val" id="lead6_val" min="0"
-                    value="{{$vms->lead6_val}}" required>
-                <label class="mt-2 ">Attachment</label>
-                @if(!empty($vms->lead6_doc))
-                    <div class="mb-2">
-                        <a href="{{ asset($vms->lead6_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead6_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead6_doc" id="lead6_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>7. No of PPE Audit Conducted <span class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead7_val" id="lead7_val" min="0"
-                    value="{{$vms->lead7_val}}" required>
-                <label class="mt-2">Attachment</label>
-                @if(!empty($vms->lead7_doc))
-                    <div class="mb-2">
-                        <a href="{{ asset($vms->lead7_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead7_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead7_doc" id="lead7_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>8. No of Tools-Tackles Audit Conducted <span
-                        class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead8_val" id="lead8_val" min="0"
-                    value="{{$vms->lead8_val}}" required>
-                <label class="mt-2">Attachment</label>
-                @if(!empty($vms->lead8_doc))
-                    <div class="mb-2">
-                        <a href="{{ asset($vms->lead8_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead8_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead8_doc" id="lead8_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>9. No of Safety Kaizen Done <span class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead9_val" id="lead9_val" min="0"
-                    value="{{$vms->lead9_val}}" required>
-                <label class="mt-2">Attachment</label>
-                @if(!empty($vms->lead9_doc))
-                    <div class="mb-2">
-                        <a href="{{ asset($vms->lead9_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead9_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead9_doc" id="lead9_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>10. No of Near Miss Reported During the Month <span
-                        class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lead10_val" id="lead10_val" min="0"
-                    value="{{$vms->lead10_val}}" required>
-                <label class="mt-2">Attachment</label>
-                @if(!empty($vms->lead10_doc))
-                    <div class="mb-2">
-                        <a href="{{ asset($vms->lead10_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-                <div class="file-dropzone dn" data-target="lead10_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lead10_doc"
-                        id="lead10_doc" accept="application/pdf">
-                </div>
-            </div>
-        </div>
-
-        <div class="lag-indicators mt-4">
-            <h5 class="fw-bold">Lag Indicators:</h5>
-
-            <div class="form-group">
-                <label>1. No of First Aid Case <span class="text-danger"><strong>*</strong></span></label>
-                <input type="number" class="form-control indicator-value hd" name="lag1_val" id="lag1_val" min="0"
-                    value="{{ $vms->lag1_val }}" required>
-
-                <label class="mt-2">Attachment</label>
-
-                @if (!empty($vms->lag1_doc))
-                    <div class="mb-2">
-                        <a href="{{ asset($vms->lag1_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-
-                <div class="file-dropzone dn" data-target="lag1_doc">
-                    <span>Drag & drop PDF here or click to upload</span>
-                    <input type="file" class="form-control d-none indicator-attachment" name="lag1_doc" id="lag1_doc"
-                        accept="application/pdf">
-                </div>
-            </div>
-        </div>
-
-
-        <div class="form-group">
-            <label>2. No of Medical Treated Case <span class="text-danger"><strong>*</strong></span></label>
-            <input type="number" class="form-control indicator-value hd" name="lag2_val" id="lag2_val" min="0"
-                value="{{ $vms->lag2_val }}" required>
-            <label class="mt-2 ">Attachment</label>
-            @if (!empty($vms->lag2_doc))
-                <div class="mb-2">
-                    <a href="{{ asset($vms->lag2_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        📎 View Existing File
-                    </a>
-                </div>
-            @endif
-            <div class="file-dropzone dn" data-target="lag2_doc">
-                <span>Drag & drop PDF here or click to upload</span>
-                <input type="file" class="form-control d-none indicator-attachment" name="lag2_doc" id="lag2_doc"
-                    accept="application/pdf">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>3. No of LTIs <span class="text-danger"><strong>*</strong></span></label>
-            <input type="number" class="form-control indicator-value hd" name="lag3_val" id="lag3_val" min="0"
-                value="{{ $vms->lag3_val }}" required>
-            <label class="mt-2">Attachment</label>
-            @if (!empty($vms->lag3_doc))
-                <div class="mb-2">
-                    <a href="{{ asset($vms->lag3_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        📎 View Existing File
-                    </a>
-                </div>
-            @endif
-            <div class="file-dropzone dn" data-target="lag3_doc">
-                <span>Drag & drop PDF here or click to upload</span>
-                <input type="file" class="form-control d-none indicator-attachment" name="lag3_doc" id="lag3_doc"
-                    accept="application/pdf">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>4. No of Fatality <span class="text-danger"><strong>*</strong></span></label>
-            <input type="number" class="form-control indicator-value hd" name="lag4_val" id="lag4_val" min="0"
-                value="{{ $vms->lag4_val }}" required>
-            <label class="mt-2">Attachment</label>
-            @if (!empty($vms->lag4_doc))
-                <div class="mb-2">
-                    <a href="{{ asset($vms->lag4_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        📎 View Existing File
-                    </a>
-                </div>
-            @endif
-            <div class="file-dropzone dn" data-target="lag4_doc">
-                <span>Drag & drop PDF here or click to upload</span>
-                <input type="file" class="form-control d-none indicator-attachment" name="lag4_doc" id="lag4_doc"
-                    accept="application/pdf">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>5. No of Non Injury Incident <span class="text-danger"><strong>*</strong></span></label>
-            <input type="number" class="form-control indicator-value hd" name="lag5_val" id="lag5_val" min="0"
-                value="{{ $vms->lag5_val }}" required>
-            <label class="mt-2">Attachment</label>
-            @if (!empty($vms->lag5_doc))
-                <div class="mb-2">
-                    <a href="{{ asset($vms->lag5_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        📎 View Existing File
-                    </a>
-                </div>
-            @endif
-            <div class="file-dropzone dn" data-target="lag5_doc">
-                <span>Drag & drop PDF here or click to upload</span>
-                <input type="file" class="form-control d-none indicator-attachment" name="lag5_doc" id="lag5_doc"
-                    accept="application/pdf">
-            </div>
-        </div>
-        @if (!empty($vms->lag6_doc))
-            <div class="form-group">
-                <label>6. No of Severity 4&5 Violation Reported</label>
-                <input type="number" class="form-control indicator-value" name="lag6_val" id="lag6_val" disabled
-                    value="{{$vms->lag6_val ?? '0'}}">
-                <label class="mt-2">Attachment</label>
-                @if (!empty($vms->lag6_doc))
-                    <div class="mb-2">
-                        <a href="{{ asset($vms->lag6_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            📎 View Existing File
-                        </a>
-                    </div>
-                @endif
-            </div>
-
-        @endif
-
-    </div>
-
-    <div class="text-center mt-4 dn">
-        <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm" style="font-size: 1.1rem;"
-            id="submit-btn">
-            <span id="spinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
-            <i class="fas fa-check-circle me-2" id="btn-icon"></i>
-            <span id="btn-text">Submit</span>
-        </button>
-    </div>
-
-</form>
-@php
-    $VendorMisFlows = DB::table('vendor_mis_flow')
-        ->where('vendor_mis_id', $vms->id)
-        ->where('status', 'Y')
-
-        ->get();
-@endphp
-
-@forelse($VendorMisFlows as $vms1)
-    <div class="card-body material-card mt-4 shadow rounded-3">
-        <div class="material-header mb-3">
-            <center>
-                <h3>📋 @if($vms1->department_id != 0){{"Safety"}}@else{{ "Vendor "}} @endif Decision Panel</h3>
-            </center>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">📝 Decision</label>
-                <input type="text" class="form-control"
-                    value="{{ ucfirst($vms1->decision ?? 'Edited/Corrected  by Vendor') }}" disabled>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">📅 Decision Datetime</label>
-                <input type="text" class="form-control" value="{{date('d-m-Y H:i:s', strtotime($vms1->remarks_datetime))}}"
-                    disabled>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <label class="form-label fw-semibold">💬 Remarks</label>
-            <textarea name="remarks" rows="4" class="form-control shadow-sm" placeholder=""
-                disabled>{{$vms1->remarks}}</textarea>
-        </div>
-    </div>
-@empty
-
-@endforelse
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-@php  
-    $flow = DB::table('vendor_mis_flow')->where('vendor_mis_id', $vms->id)->where('status', 'N')->where('level', '!=', '0')->first();
-@endphp
-<div class="card-body material-card mt-4 shadow rounded-3" @if(@$flow->id) {{''}}@else{{'hidden'}}@endif>
-
-    <form id="hr_form" method="POST">
-        @csrf
-        <div class="material-header mb-3">
-            <center>
-                <h3>👷‍♂️ Safety Approval Panel</h3>
-            </center>
-        </div>
-        <input type="hidden" name="flow_id" value="{{$flow->id ?? ''}}">
-
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Select Action </label>
-            <div class="d-flex gap-2">
-                <div>
-                    <input type="radio" class="btn-check" hidden name="action" id="btn-approve" value="approve"
-                        autocomplete="off">
-                    <label class="btn btn-outline-success px-4 py-2 rounded-pill" for="btn-approve">
-                        <i class="fas fa-check-circle me-1"></i> Approve
-                    </label>
-                </div>
-                &nbsp;&nbsp;
-                <div>
-                    <input type="radio" class="btn-check" name="action" id="btn-return" value="return"
-                        autocomplete="off" hidden>
-                    <label class="btn btn-outline-danger px-4 py-2 rounded-pill" for="btn-return">
-                        <i class="fas fa-undo-alt me-1"></i> Reject
-                    </label>
-                </div>
-            </div>
-            <div id="action-error" class="text-danger small mt-1 d-none">Please select an action.</div>
-        </div>
-        <div class="form-group">
-            <label>6. No of Severity 4&5 Violation Reported</label>
-            <input type="number" class="form-control indicator-value" name="lag6_val" id="lag6_val"
-                value="{{$vms->lag6_val}}">
-            <label class="mt-2">Attachment</label>
-            @if (!empty($vms->lag6_doc))
-                <div class="mb-2">
-                    <a href="{{ asset($vms->lag5_doc) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        📎 View Existing File
-                    </a>
-                </div>
-            @endif
-            <div class="file-dropzone" data-target="lag6_doc">
-                <span>Drag & drop PDF here or click to upload</span>
-                <input type="file" class="form-control d-none indicator-attachment" name="lag6_doc" id="lag6_doc"
-                    accept="application/pdf">
-            </div>
-            <small class="text-danger">* To be filled by Safety Professional Only</small>
-        </div>
-
-        <div class="mb-4">
-            <label class="form-label fw-semibold">Remarks </label>
-
-            <textarea name="remarks" rows="4" class="form-control shadow-sm" placeholder="Write your remarks here..."
-                required></textarea>
-        </div>
-
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm" style="font-size: 1.1rem;"
-                id="submit-btn">
-                <span id="spinner" class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
-                <i class="fas fa-check-circle me-2" id="btn-icon"></i>
-                <span id="btn-text">Submit</span>
-            </button>
-        </div>
-    </form>
-</div>
-<style>
-    .material-header {
-        background-color: #c9d64db0;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        border-radius: 50px;
-
+    .is-invalid {
+        border-color: #dc3545 !important;
     }
 
-    .material-card {
-        background-color: #ffffff9d;
+    .invalid-feedback {
+        display: none;
+        color: #dc3545;
+        font-size: 0.875em;
+    }
+
+    .was-validated .form-control:invalid~.invalid-feedback {
+        display: block;
+    }
+
+    .file-upload-container {
+        border: 2px dashed #dee2e6;
+        border-radius: 5px;
         padding: 20px;
-        border-radius: 30px;
-        box-shadow: 0 6px 12px 18px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        margin-bottom: 20px;
+        transition: all 0.3s;
     }
 
-    .form-control,
-    textarea {
-        border-radius: 30px;
-        transition: 0.3s ease-in-out;
+    .file-upload-container.dragover {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.05);
     }
 
-    .form-control:focus {
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        border-color: #80bdff;
-    }
+    .file-preview-success {
+    display: inline-block;
+    background: #d1fae5;       /* light green background */
+    border: 2px solid #10b981; /* thick green border */
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    margin-top: 0.5rem;
+    font-size: 14px;
+    font-weight: 600;
+    color: #065f46;            /* dark green text */
+}
 
-    textarea {
-        resize: vertical;
-    }
+.file-preview-success a {
+    color: #065f46;            /* dark green */
+    text-decoration: none;
+}
 
+.file-preview-success a:hover {
+    text-decoration: underline;
+}
 
-    .btn-check:checked+.btn-outline-success {
-        background-color: #28a745;
-        color: white;
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.25rem rgba(5, 221, 55, 0.3);
-    }
-
-    .btn-check:checked+.btn-outline-danger {
-        background-color: hsl(12, 100%, 51%);
-        color: #f4faff;
-        border-color: #ff3907fa;
-        box-shadow: 0 0 0 0.25rem rgba(238, 21, 5, 0.3);
-    }
-
-    .material-header i {
-        font-size: 1.2rem;
-        vertical-align: middle;
-    }
 </style>
+</head>
 
-<!-- JavaScript -->
-<script>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-16">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
 
-    document.getElementById('hr_form').addEventListener('submit', function (e) {
-        e.preventDefault();
+                    </div>
+                    <div class="card-body">
+                        <style>
+                            .step-indicator {
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 2rem;
+                                position: relative;
+                                padding: 0 1rem;
+                            }
 
-        const form = document.getElementById('hr_form');
-        const submitBtn = document.getElementById('submit-btn');
-        const spinner = document.getElementById('spinner');
-        const btnText = document.getElementById('btn-text');
-        const actionError = document.getElementById('action-error');
+                            .step-indicator::before {
+                                content: '';
+                                position: absolute;
+                                top: 20px;
+                                left: 0;
+                                right: 0;
+                                height: 3px;
+                                background: #e0e0e0;
+                                z-index: 1;
+                            }
 
-        const actionSelected = document.querySelector('input[name="action"]:checked');
-        if (!actionSelected) {
-            actionError.classList.remove('d-none');
-            return;
-        } else {
-            actionError.classList.add('d-none');
-        }
+                            .step {
+                                position: relative;
+                                z-index: 2;
+                                text-align: center;
+                                width: 100%;
+                            }
 
-        submitBtn.disabled = true;
-        spinner.classList.remove('d-none');
-        btnText.innerText = 'Processing...';
+                            .step .step-number {
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                background: #e0e0e0;
+                                color: #6c757d;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin: 0 auto 10px;
+                                font-weight: bold;
+                                border: 3px solid #fff;
+                                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                                transition: all 0.3s ease;
+                            }
 
-        const formData = new FormData(form);
-        formData.append('_method', 'PUT'); // Laravel method spoofing for update
+                            .step.active .step-number {
+                                background: #0d6efd;
+                                color: white;
+                                transform: scale(1.1);
+                            }
 
-        fetch('{{ route("vendor_mis.update", $vms_details->id) }}', {
-            method: 'POST', // still POST, Laravel treats it as PUT because of the _method field
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: formData
-        })
-            .then(async res => {
-                const contentType = res.headers.get("content-type");
-                if (!res.ok) {
-                    if (contentType && contentType.includes("application/json")) {
-                        const errorData = await res.json();
-                        throw new Error(errorData.message || 'Server Error');
+                            .step.completed .step-number {
+                                background: #198754;
+                                color: white;
+                            }
+
+                            .step.completed .step-number::after {
+                                content: '\f00c';
+                                font-family: 'Font Awesome 5 Free';
+                                font-weight: 900;
+                            }
+
+                            .step-label {
+                                font-size: 12px;
+                                color: #6c757d;
+                                font-weight: 500;
+                            }
+
+                            .step.active .step-label,
+                            .step.completed .step-label {
+                                color: #212529;
+                                font-weight: 600;
+                            }
+
+                            .progress-connector {
+                                position: absolute;
+                                top: 20px;
+                                left: 0;
+                                height: 3px;
+                                background: #198754;
+                                z-index: 2;
+                                transition: width 0.3s ease;
+                            }
+                        </style>
+
+                        <div class="step-indicator">
+                            <div class="progress-connector" id="step-progress"></div>
+                            <div class="step active" id="step1-indicator">
+                                <div class="step-number">1</div>
+                                <div class="step-label">Basic Information</div>
+                            </div>
+                            <div class="step" id="step2-indicator">
+                                <div class="step-number">2</div>
+                                <div class="step-label">Legal Compliance</div>
+                            </div>
+                            <div class="step" id="step3-indicator">
+                                <div class="step-number">3</div>
+                                <div class="step-label">Safety Parameters</div>
+                            </div>
+                            <div class="step" id="step4-indicator">
+                                <div class="step-number">4</div>
+                                <div class="step-label">Valid Certificate</div>
+                            </div>
+                        </div>
+
+                        <script>
+                            function updateStepIndicator(currentStep, totalSteps) {
+                                // Reset all steps
+                                $('.step').removeClass('active completed');
+
+                                // Update active and completed steps
+                                $('.step').each(function (index) {
+                                    const stepNumber = index + 1;
+                                    if (stepNumber < currentStep) {
+                                        $(this).addClass('completed');
+                                    } else if (stepNumber === currentStep) {
+                                        $(this).addClass('active');
+                                    }
+                                });
+
+                                // Update progress connector
+                                const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+                                $('#step-progress').css('width', progressPercentage + '%');
+                            }
+
+                            // Initialize with first step active
+                            updateStepIndicator(1, 4);
+
+                            // Call this whenever step changes
+                            // Example: updateStepIndicator(2, 4) when moving to step 2
+                        </script>
+
+                        <form id="form" enctype="multipart/form-data" novalidate>
+                            @csrf
+                            <input type="hidden" name="status" id="statusField" value="draft">
+                            <input type="hidden" name="id" id="recordId" value="{{$vms->id}}">
+                            <input type="hidden" name="uid" id="" value="{{$user_id}}">
+                            <!-- Step 1: Basic Information -->
+                            <div class="form-step active" id="step1">
+                                <h5>Basic Information:</h5>
+                                <br>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Work Order No <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" name="work_order_no"
+                                            id="work_order_no" placeholder="Enter Work-Order No"
+                                            value="{{$vms->work_order_no}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Validity <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="validity" id="validity"
+                                            value="{{$vms->validity}}" required readonly>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+
+
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Division <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="division" id="division" required>
+                                            <option value="">Select Division</option>
+                                            @if($divs->count() > 0)
+                                                @foreach($divs as $division)
+                                                    <option value="{{ $division->id }}" {{ ($vms->division_id ?? '') == $division->id ? 'selected' : '' }}>
+                                                        {{ $division->name }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Section <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="plant" id="plant" required>
+                                            <option value="">Select Section</option>
+
+                                        </select>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Approver <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="approver" required>
+                                        <option value="">Select Approver</option>
+                                        <option value="6">Approver 1</option>
+                                        <option value="2">Approver 2</option>
+                                        <option value="3">Approver 3</option>
+                                    </select>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+
+                            </div>
+
+                            <!-- Step 2: Legal Compliance -->
+                            <div class="form-step" id="step2">
+                                <h5>Legal And Statutory Compliance
+
+                                </h5>
+                                <br>
+                                <div class="mb-3">
+                                    <label class="form-label">Vehicle Registration No <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="vehicle_reg_no"
+                                        placeholder="Enter Vehicle Registration No"
+                                        value="{{$vms->vehicle_registration_no}}" required>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Registration Proof <span
+                                            class="text-danger">*</span></label>
+                                    <div class="file-upload-container" id="regUpload">
+                                        <input type="file" class="d-none" name="vehicle_reg_file" id="vehicle_reg_file"
+                                            accept="application/pdf" @if(empty($vms->registration_doc)) {{'required'}}@endif>
+
+                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+
+                                        <!-- Existing file from DB -->
+                                        @if(!empty($vms->registration_doc))
+                                            <div class="file-preview-success" id="filePreview">
+                                                <a href="{{ asset($vms->registration_doc) }}" target="_blank">
+                                                    📄 {{ basename($vms->registration_doc) }}
+                                                </a>
+                                                <input type="hidden" name="existing_vehicle_reg_file"
+                                                    value="{{ $vms->registration_doc }}">
+                                            </div>
+
+                                        @endif
+
+                                        <button type="button" class="btn btn-outline-primary" id="uploadBtn">
+                                            <i class="fas fa-upload me-2"></i>Upload File
+                                        </button>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+
+
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Insurance From <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="insurance_from"
+                                            value="{{$vms->insurance_from}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Insurance To <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="insurance_to"
+                                            value="{{$vms->insurance_to}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Insurance Certificate <span
+                                            class="text-danger">*</span></label>
+                                    <div class="file-upload-container" id="insuranceUpload">
+                                        <input type="file" class="d-none" name="insurance_file" @if(empty($vms->insurance_doc)) {{'required'}}@endif>
+                                        <!-- Existing file from DB -->
+                                        @if(!empty($vms->insurance_doc))
+                                            <div class="file-preview-success" id="filePreview">
+                                                <a href="{{ asset($vms->insurance_doc) }}" target="_blank">
+                                                    📄 {{ basename($vms->insurance_doc) }}
+                                                </a>
+                                                <input type="hidden" name="existing_insurance_file"
+                                                    value="{{ $vms->insurance_doc }}">
+                                            </div>
+
+                                        @endif
+                                        <button type="button" class="btn btn-outline-primary">
+                                            <i class="fas fa-upload me-2"></i>Upload File
+                                        </button>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Valid Fitness Inspection Date <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="fitness_date"
+                                            value="{{$vms->valid_fitness_inspection_date}}" @if(empty($vms->fitness_certificate)){{'required'}}@endif>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Fitness Certificate <span
+                                            class="text-danger">*</span></label>
+                                    <div class="file-upload-container" id="fitnessUpload">
+                                        <input type="file" class="d-none" name="fitness_file" @if(empty($vms->fitness_certificate)){{'required'}}@endif>
+                                        @if(!empty($vms->fitness_certificate))
+                                            <div class="file-preview-success" id="filePreview">
+                                                <a href="{{ asset($vms->fitness_certificate) }}" target="_blank">
+                                                    📄 {{ basename($vms->fitness_certificate) }}
+                                                </a>
+                                                <input type="hidden" name="existing_fitness_file"
+                                                    value="{{ $vms->fitness_certificate }}">
+                                            </div>
+
+                                        @endif
+
+                                        <button type="button" class="btn btn-outline-primary">
+                                            <i class="fas fa-upload me-2"></i>Upload File
+                                        </button>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">PUC Inspection Date <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="puc_inspection_date"
+                                            value="{{$vms->puc_inspection_date}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">PUC Due Date <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="puc_due_date"
+                                            value="{{$vms->puc_inspection_due_date}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">PUC Certificate <span class="text-danger">*</span></label>
+                                    <div class="file-upload-container" id="pucUpload">
+                                        <input type="file" class="d-none" name="puc_file" @if(empty($vms->puc_certificate)){{'required'}}@endif>
+                                        @if(!empty($vms->puc_certificate))
+                                            <div class="file-preview-success" id="filePreview">
+                                                <a href="{{ asset($vms->puc_certificate) }}" target="_blank">
+                                                    📄 {{ basename($vms->puc_certificate) }}
+                                                </a>
+                                                <input type="hidden" name="existing_puc_file"
+                                                    value="{{ $vms->puc_certificate }}">
+                                            </div>
+
+                                        @endif
+                                        <button type="button" class="btn btn-outline-primary">
+                                            <i class="fas fa-upload me-2"></i>Upload File
+                                        </button>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <label class="form-label">Valid Road Permit<span class="text-danger">*</span></label>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label"> From Date<span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="valid_road_permit_date"
+                                            value="{{$vms->valid_road_permit_date}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Due Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="valid_road_permit_due_date"
+                                            value="{{$vms->valid_road_permit_due_date}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Road Permit Certificate <span
+                                            class="text-danger">*</span></label>
+                                    <div class="file-upload-container" id="pucUpload">
+                                        <input type="file" class="d-none" name="road_permit_certificate" @if(empty($vms->road_permit_certificate)){{'required'}}@endif>
+                                        @if(!empty($vms->road_permit_certificate))
+                                            <div class="file-preview-success" id="filePreview">
+                                                <a href="{{ asset($vms->road_permit_certificate) }}" target="_blank">
+                                                    📄 {{ basename($vms->road_permit_certificate) }}
+                                                </a>
+                                                <input type="hidden" name="existing_road_permit_certificate"
+                                                    value="{{ $vms->road_permit_certificate }}">
+                                            </div>
+
+                                        @endif
+                                        <button type="button" class="btn btn-outline-primary">
+                                            <i class="fas fa-upload me-2"></i>Upload File
+                                        </button>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <!-- Navigation Buttons -->
+
+
+                            </div>
+
+                            <!-- Step 3: Safety Parameters -->
+                            <div class="form-step" id="step3">
+                                <h5>Safety Parameters :
+
+                                </h5><br>
+                                <div class="mb-3">
+                                    <label class="form-label">Vehicle Deputed For <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" id="deputedFor" name="vehicle_deputed_for" required>
+                                        <option value="">Select Option</option>
+                                        <option value="Local Movement" @if($vms->vehicle_dupted_for == 'Local Movement')
+                                        {{'selected'}}@endif>Local Movement</option>
+                                        <option value="To Other States" @if($vms->vehicle_dupted_for == 'To Other States')
+                                        {{'selected'}}@endif>To Other States</option>
+                                    </select>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+                                <div id="otherStateFields" class="d-none">
+                                    <div class="mb-3">
+                                        <label class="form-label">DFMS Available <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select" name="dfms_available" required>
+                                            <option value="">Select Option</option>
+                                            <option value="Yes" @if($vms->dfms == 'Yes'){{'selected'}}@endif>Yes</option>
+                                            <option value="No" @if($vms->dfms == 'No'){{'selected'}}@endif>No</option>
+                                        </select>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">GPS Tracker Available <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select" name="gps_tracker_available" required>
+                                            <option value="">Select Option</option>
+                                            <option value="Yes" @if($vms->gps_tracker == 'Yes'){{'selected'}}@endif>Yes
+                                            </option>
+                                            <option value="No" @if($vms->gps_tracker == 'No'){{'selected'}}@endif>No
+                                            </option>
+                                        </select>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Availability of Hatch Strainers In All Hatch<span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" id="hatch_strainers" name="hatch_strainers" required>
+                                        <option value="">Select Option</option>
+                                        <option value="Yes" @if($vms->hatch_strainers == 'Yes'){{'selected'}}@endif>Yes
+                                        </option>
+                                        <option value="No" @if($vms->hatch_strainers == 'No'){{'selected'}}@endif>No
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Availability of Fuel Tank Strainer<span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" id="fuel_tank_stainers" name="fuel_tank_stainers"
+                                        required>
+                                        <option value="">Select Option</option>
+                                        <option value="Yes" @if($vms->fuel_tank_strainers == 'Yes') {{'selected'}}@endif>
+                                            Yes</option>
+                                        <option value="No" @if($vms->fuel_tank_strainers == 'No') {{'selected'}}@endif>No
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Battery Placement at Outside of Prime Mover<span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" id="battery_placement" name="battery_placement"
+                                        required>
+                                        <option value="">Select Option</option>
+                                        <option value="Yes" @if($vms->battery_placment == 'Yes'){{'selected'}}@endif>Yes
+                                        </option>
+                                        <option value="No" @if($vms->battery_placment == 'No'){{'selected'}}@endif>No<
+                                                /option>
+                                    </select>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Availablility of Fire Extinguisher <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" name="fire_extinguisher" required>
+                                        <option value="">Select Option</option>
+                                        <option value="Yes" @if($vms->fire_extinguishers == 'Yes') {{'selected'}}@endif>
+                                            Yes</option>
+                                        <option value="No" @if($vms->fire_extinguishers == 'No') {{'selected'}}@endif>No<
+                                                /option>
+                                    </select>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Availability of First Aid Box <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select" name="first_aid_box" required>
+                                        <option value="">Select Option</option>
+                                        <option value="Yes" @if($vms->first_aid_box == 'Yes'){{'selected'}} @endif>
+                                            Yes</option>
+                                        <option value="No" @if($vms->first_aid_box == 'No'){{'selected'}} @endif>No
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Availability of Stepney (Spare Tyre) <span
+                                            class="text-danger">*</span></label>
+
+
+                                    <select class="form-select" name="stepney" required>
+                                        <option value="">Select Option</option>
+                                        <option value="Yes" @if($vms->stepney == 'Yes'){{'selected'}}@endif>Yes</option>
+                                        <option value="No" @if($vms->stepney == 'No'){{'selected'}}@endif>No</option>
+                                    </select>
+                                    <div class="invalid-feedback">Required field</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Availability of Scotch Blocks (4 Nos)<span
+                                            class="text-danger">*</span></label>
+
+
+                                    <select class="form-select" name="scotch_block" required>
+                                        <option value="">Select Option</option>
+                                        <option value="Yes" @if($vms->scoth_block == 'Yes'){{'selected'}}@endif>Yes
+                                        </option>
+                                        <option value="No" @if($vms->scoth_block == 'No'){{'selected'}}@endif>No</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Availability of Earth Chain<span
+                                            class="text-danger">*</span></label>
+
+
+                                    <select class="form-select" name="earth_block" required>
+                                        <option value="">Select Option</option>
+                                        <option value="Yes" @if($vms->earth_chain == 'Yes'){{'selected'}}@endif>Yes
+                                        </option>
+                                        <option value="No" @if($vms->earth_chain == 'No'){{'selected'}}@endif>No</option>
+                                    </select>
+
+                                </div>
+
+
+                            </div>
+                            <!-- Step 4: Certifications -->
+                            <div class="form-step" id="step4">
+                                <h5>Valid Certificate :
+
+                                </h5><br>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Pressure Vessel Test Date <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="pressure_vessel_test_date" value="{{$vms->vessel_test_date}}"
+                                            required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Pressure Vessel Due Date <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="pressure_vessel_due_date" value="{{$vms->vessel_due_date}}"
+                                            required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Vessel Certificate <span
+                                            class="text-danger">*</span></label>
+                                    <div class="file-upload-container" id="vesselUpload">
+                                        <input type="file" class="d-none" name="pressure_vessel_file" @if(empty($vms->vessel_certiicate)){{'required'}}@endif>
+                                        @if(!empty($vms->vessel_certiicate))
+                                            <div class="file-preview-success" id="filePreview">
+                                                <a href="{{ asset($vms->vessel_certiicate) }}" target="_blank">
+                                                    📄 {{ basename($vms->vessel_certiicate) }}
+                                                </a>
+                                                <input type="hidden" name="existing_pressure_vessel_file"
+                                                    value="{{ $vms->vessel_certiicate }}">
+                                            </div>
+                                        @endif
+                                     
+                                        <button type="button" class="btn btn-outline-primary">
+                                            <i class="fas fa-upload me-2"></i>Upload File
+                                        </button>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Pressure Gauge Calibration Date<span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="pressure_gauge_date" value="{{$vms->pressure_gauge_date}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Pressure Gauge Calibration Due Date <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="pressure_gauge_due_date" value="{{$vms->pressure_gauge_due_date}}" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Pressure Gauge Certificate <span
+                                            class="text-danger">*</span></label>
+                                    <div class="file-upload-container" id="vesselUpload">
+                                        <input type="file" class="d-none" name="pressure_gauge_file" @if(empty($vms->pressure_gauge_certificate)) {{'required'}}@endif>
+                                        @if(!empty($vms->pressure_gauge_certificate))
+                                            <div class="file-preview-success" id="filePreview">
+                                                <a href="{{ asset($vms->pressure_gauge_certificate) }}" target="_blank">
+                                                    📄 {{ basename($vms->pressure_gauge_certificate) }}
+                                                </a>
+                                                <input type="hidden" name="existing_pressure_gauge_file"
+                                                    value="{{ $vms->pressure_gauge_certificate }}">
+                                            </div>
+                                        @endif
+                                        <button type="button" class="btn btn-outline-primary">
+                                            <i class="fas fa-upload me-2"></i>Upload File
+                                        </button>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Pressure Relief Valve Test Date<span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="pressure_relief_test_date" value="{{$vms->pressure_relief_test_date}}"
+                                            required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Pressure Relief Valve Due Date <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="pressure_relief_due_date" value="{{$vms->pressure_relief_due_date}}"
+                                            required>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Pressure Relief Certificate <span
+                                            class="text-danger">*</span></label>
+                                    <div class="file-upload-container" id="vesselUpload">
+                                        <input type="file" class="d-none" name="pressure_relief_file" @if(empty($vms->pressure_relief_certificate)) {{'required'}} @endif>
+                                           @if(!empty($vms->pressure_relief_certificate))
+                                            <div class="file-preview-success" id="filePreview">
+                                                <a href="{{ asset($vms->pressure_relief_certificate) }}" target="_blank">
+                                                    📄 {{ basename($vms->pressure_relief_certificate) }}
+                                                </a>
+                                                <input type="hidden" name="existing_pressure_relief_file"
+                                                    value="{{ $vms->pressure_relief_certificate }}">
+                                            </div>
+                                        @endif
+                                        <button type="button" class="btn btn-outline-primary">
+                                            <i class="fas fa-upload me-2"></i>Upload File
+                                        </button>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
+                                </div>
+                                Note : Every Field is Mandatory to have if any point is selected as 'No' Then Safety
+                                Department will reject the request.
+                                {{-- <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="declaration">
+                                    <label class="form-check-label" for="declaration">
+                                        I certify that all information provided is accurate
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="invalid-feedback">You must accept the declaration</div>
+                                </div> --}}
+                            </div>
+
+                            <!-- Navigation Buttons -->
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-secondary prev-step">
+                                    <i class="fas fa-arrow-left me-2"></i> Previous
+                                </button>
+                                <button type="button" class="btn btn-primary next-step" style="display: none;"
+                                    id="nextsave">
+                                    Next <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                                <button type="button" class="btn btn-success submit-step" id="savepreview">
+                                    <i class="fas fa-check me-2"></i> Save & Preview
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="pageLoader"
+        class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50"
+        style="z-index: 2000;">
+        <div class="bg-white p-4 rounded shadow text-center">
+            <div class="spinner-border text-primary mb-2" role="status"></div>
+            <p class="mb-0 fw-bold">Saving...</p>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-eye"></i> Review & Confirm</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab"
+                                data-bs-target="#pv-basic" type="button" role="tab">Basic Info</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                                data-bs-target="#pv-lead" type="button" role="tab">Legal & Statutory Compliance</but
+                                    ton>
+                        </li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                                data-bs-target="#pv-lag" type="button" role="tab">Safety Parameters</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                                data-bs-target="#pv-valid_certificate" type="button" role="tab">Valid
+                                Certificates</button></li>
+                    </ul>
+
+                    <div class="tab-content p-3">
+
+                        <!-- Basic Info -->
+                        <div class="tab-pane fade show active" id="pv-basic" role="tabpanel">
+                            <div class="row g-3">
+                                <div class="col-md-6"><strong>Work Order No:</strong> <span
+                                        id="pv_work_order_no"></span></div>
+                                <div class="col-md-6"><strong>Validity:</strong> <span id="pv_validity"></span></div>
+                                <div class="col-md-6"><strong>Division:</strong> <span id="pv_division"></span></div>
+                                <div class="col-md-6"><strong>Section:</strong> <span id="pv_section"></span></div>
+                                <div class="col-md-6"><strong>Approver:</strong> <span id="pv_approver"></span></div>
+                            </div>
+                        </div>
+
+                        <!--  Legal Compliance -->
+
+                        <div class="tab-pane fade" id="pv-lead" role="tabpanel">
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6"><strong>Vehicle Registration No:</strong> <span
+                                        id="pv_vehicle_reg_no"></span></div>
+
+                                <div class="col-md-6"><strong>Registration Proof:</strong> <span
+                                        id="pv_vehicle_reg_file"></span></div>
+
+                                <div class="col-md-6"><strong>Insurance From:</strong> <span
+                                        id="pv_insurance_from"></span></div>
+
+                                <div class="col-md-6"><strong>Insurance To:</strong> <span id="pv_insurance_to"></ span>
+                                </div>
+
+                                <div class="col-md-6"><strong>Insurance Certificate:</strong>
+                                    <span id="pv_insurance_file"></span>
+                                </div>
+
+                                <div class="col-md-6"><strong>Fitness Date:</strong> <span id="pv_fitness_date"></span>
+                                </div>
+                                <div class="col-md-6"><strong>Fitness Certificate:</strong> <span
+                                        id="pv_fitness_file"></span></div>
+                                <div class="col-md-6"><strong>PUC Inspection Date:</strong> <span
+                                        id="pv_puc_inspection_date"></span></div>
+                                <div class="col-md-6"><strong>PUC Due Date:</strong> <span id="pv_puc_due_date"></span>
+                                </div>
+
+                                <div class="col-md-6"><strong>PUC Certificate:</strong> <span id="pv_puc_file"></span>
+                                </div>
+
+                                <div class="col-md-6"><strong>Road Permit From:</strong>
+                                    <sp a n id="pv_valid_road_permit_date"></span>
+                                </div>
+
+                                <div class="col-md-6"><strong>Road Permit Due Date:</strong> <span
+                                        id="pv_valid_road_permit_due_date"></span></div>
+                                <div class="col-md-6"><strong>Road Permit Certificate:</strong> <span
+                                        id="pv_road_permit_certificate"></span></div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Safety Parameters -->
+                        <div class="tab-pane fade" id="pv-lag" role="tabpanel">
+                            <div class="row g-3">
+                                <div class="col-md-6"><strong>Vehicle Deputed For:</strong> <span
+                                        id="pv_vehicle_deputed_for"></span></div>
+
+                                <div class="col-md-6"><strong>DFMS Available:</strong> <span
+                                        id="pv_dfms_available"></span></div>
+
+                                <div class="col-md-6"><strong>GPS Tracker:</strong> <span
+                                        id="pv_gps_tracker_available"></span></div>
+
+                                <div class="col-md-6"><strong>Hatch Strainers:</strong>
+                                    <sp a n id="pv_hatch_strainers"></span>
+                                </div>
+
+                                <div class="col-md-6"><strong>Fuel Tank Strainer:</strong> <span
+                                        id="pv_fuel_tank_stainers"></span></div>
+
+                                <div class="col-md-6"><strong>Battery Placement:</strong> <span
+                                        id="pv_battery_placement"></span></div>
+                                <div class="col-md-6"><strong>Fire Extinguisher:</strong> <span
+                                        id="pv_fire_extinguisher"></span></div>
+                                <div class="col-md-6"><strong>First Aid Box:</strong> <span
+                                        id="pv_first_aid_box"></span></div>
+                                <div class="col-md-6"><strong>Stepney:</strong> <span id="pv_stepney"></span></div>
+
+                                <div class="col-md-6"><strong>Scotch Blocks:</strong> <span id="pv_scotch_block"></span>
+                                </div>
+                                <div class="col-md-6"><strong>Earth Chain:</strong> <span id="pv_earth_block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Valid Certificates -->
+                        <div class="tab-pane fade" id="pv-valid_certificate" role="tabpanel">
+                            <div class="row g-3">
+                                <div class="col-md-6"><strong>Pressure Vessel Test Date:</strong> <span
+                                        id="pv_pressure_vessel_test_date"></span></div>
+                                <div class="col-md-6"><strong>Pressure Vessel Due Date:</strong> <span
+                                        id="pv_pressure_vessel_due_date"></span></div>
+                                <div class="col-md-6"><strong>Vessel Certificate:</strong> <span
+                                        id="pv_pressure_vessel_file"></span></div>
+                                <div class="col-md-6"><strong>Pressure Gauge Calibration Date:</strong> <span
+                                        id="pv_pressure_gauge_date"></span></div>
+                                <div class="col-md-6"><strong>Pressure Gauge Calibration Due Date:</strong> <span
+                                        id="pv_pressure_gauge_due_date"></span></div>
+                                <div class="col-md-6"><strong>Gauge Certificate:</strong> <span
+                                        id="pv_pressure_gauge_file"></span></div>
+                                <div class="col-md-6"><strong>Pressure Relief Test Date:</strong> <span
+                                        id="pv_pressure_relief_test_date"></span></div>
+                                <div class="col-md-6"><strong>Pressure Relief Due Date:</strong> <span
+                                        id="pv_pressure_relief_due_date"></span></div>
+                                <div class="col-md-6"><strong>Relief Certificate:</strong> <span
+                                        id="pv_pressure_relief_file"></span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="consentCheck">
+                        <label class="form-check-label" for="consentCheck">I confirm the information and attachments are
+                            accurate.</label>
+                    </div>
+                </div>
+
+                <div class="modal-footer flex-column align-items-start">
+
+                    <div class="d-flex justify-content-end w-100 gap-2">
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </button>
+                        <button class="btn btn-warning" id="btnDraft">
+                            <i class="bi bi-save"></i> Save as Draft
+                        </button>
+                        <button class="btn btn-success" id="btnFinalSubmit" disabled>
+                            <i class="bi bi-check2-circle"></i> Submit Final
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            let currentStep = 1;
+            const totalSteps = 4;
+
+            // Initialize form
+            showStep(currentStep);
+
+            // Show current step and update indicators
+            function showStep(step) {
+                // Hide all steps
+                $('.form-step').removeClass('active');
+
+                // Show current step
+                $(`#step${step}`).addClass('active');
+
+                // Update step indicators
+                $('.step').removeClass('active completed');
+                for (let i = 1; i <= step; i++) {
+                    if (i < step) {
+                        $(`#step${i}-indicator`).addClass('completed');
                     } else {
-                        const errorText = await res.text(); // fallback if JSON fails
-                        throw new Error(errorText);
+                        $(`#step${i}-indicator`).addClass('active');
                     }
                 }
-                return res.json();
-            })
-            .then(data => {
-                Swal.fire('Success', data.message, 'success').then(() => {
-                    location.reload();
-                });
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message || 'An unexpected error occurred!'
-                });
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.innerText = 'Submit';
+
+                // Update navigation buttons
+                $('.prev-step').prop('disabled', step === 1);
+                $('.next-step').toggle(step < totalSteps);
+                $('.submit-step').toggle(step === totalSteps);
+            }
+
+            // Next button click handler
+            $(document).on('click', '.next-step', function () {
+                if (validateStep(currentStep)) {
+                    currentStep++;
+                    showStep(currentStep);
+                    // Scroll to top of form
+                    $('html, body').animate({
+                        scrollTop: $('.card-body').offset().top - 20
+                    }, 300);
+                }
             });
-    });
 
-</script>
+            // Previous button click handler
+            $(document).on('click', '.prev-step', function () {
+                if (currentStep > 1) {
+                    currentStep--;
+                    showStep(currentStep);
+                    // Scroll to top of form
+                    $('html, body').animate({
+                        scrollTop: $('.card-body').offset().top - 20
+                    }, 300);
+                }
+            });
+
+            // Form submission handler
+            $('#workOrderForm').submit(function (e) {
+                e.preventDefault();
+                if (validateStep(currentStep)) {
+                    alert('Form submitted successfully!');
+                    // Uncomment for actual form submission:
+                    // this.submit();
+                }
+            });
+
+            // Validate current step
+            function validateStep(step) {
+                let isValid = true;
+                const stepForm = $(`#step${step}`);
+
+                // Validate all required fields in current step
+                stepForm.find('[required]').each(function () {
+                    if (!$(this).val() ||
+                        ($(this).is(':checkbox') && !$(this).is(':checked')) ||
+                        ($(this).is('select') && $(this).val() === '')) {
+                        $(this).addClass('is-invalid');
+                        isValid = false;
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+
+                // Special validation for file inputs
+// stepForm.find('input[type="file"][required]').each(function () {
+//     const fileInput = $(this);
+//     const existingField = fileInput.closest('.file-upload-container').find('input[type="hidden"].existing-file');
+
+//     // Condition: no new file selected AND no existing file path
+//     if (!fileInput.val() && (!existingField.length || !existingField.val())) {
+//         fileInput.addClass('is-invalid');
+//         isValid = false;
+//     } else {
+//         fileInput.removeClass('is-invalid');
+//     }
+// });
 
 
-
-
-<script>
-    document.getElementById('form').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const submitBtn = document.getElementById('submit-btn');
-        const spinner = document.getElementById('spinner');
-        const btnText = document.getElementById('btn-text');
-
-        // Show loading state
-        submitBtn.disabled = true;
-        spinner.classList.remove('d-none');
-        btnText.innerText = 'Processing...';
-
-        const formData = new FormData(this); // 'this' refers to the form
-
-        fetch('{{ route("vendor_mis.update_data") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                // Do NOT set 'Content-Type' header manually with FormData
-            },
-            body: formData
-        })
-            .then(async response => {
-                const contentType = response.headers.get('content-type') || '';
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server responded with error: ${errorText.slice(0, 150)}`);
+                if (!isValid) {
+                    // Scroll to first invalid field
+                    $('html, body').animate({
+                        scrollTop: stepForm.find('.is-invalid').first().offset().top - 100
+                    }, 300);
                 }
 
-                if (contentType.includes('application/json')) {
-                    return response.json();
+                return isValid;
+            }
+
+            // Toggle Other State fields based on selection
+            $('#deputedFor').change(function () {
+                if ($(this).val() === 'To Other States') {
+                    $('#otherStateFields').removeClass('d-none');
+                    $('#otherStateFields [required]').prop('required', true);
                 } else {
-                    const errorText = await response.text();
-                    throw new Error(`Unexpected content type. Expected JSON. Got HTML: ${errorText.slice(0, 150)}`);
+                    $('#otherStateFields').addClass('d-none');
+                    $('#otherStateFields [required]').prop('required', false);
                 }
-            })
-            .then(data => {
+            });
+
+            $(document).ready(function () {
+            if ($('#deputedFor').val()) {
+                $('#deputedFor').trigger('change');
+            }
+            });
+
+
+        
+
+            // File upload click handlers
+            $('.file-upload-container').each(function () {
+                const container = $(this);
+                const fileInput = container.find('input[type="file"]');
+                const uploadBtn = container.find('button');
+
+
+                // Handle click on upload button
+                // uploadBtn.click(function (e) {
+                //     e.preventDefault(); // stop default button behavior
+                //     fileInput.val('');  // reset so same file can be re-selected
+                //     fileInput.click();  // open file picker
+                // });
+
+
+                // Handle file selection
+                fileInput.change(function () {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        const validTypes = ['application/pdf'];
+                        const maxSize = 5 * 1024 * 1024; // 5MB
+
+                        if (!validTypes.includes(file.type)) {
+                            alert('Only PDF files are allowed.');
+                            $(this).val('');
+                            return;
+                        }
+
+                        if (file.size > maxSize) {
+                            alert('File size must be less than 5MB.');
+                            $(this).val('');
+                            return;
+                        }
+
+                        // ✅ show selected file name/link in container
+                        container.find('.file-name').remove();
+                        container.append(`<div class="file-name">
+           
+        </div>`);
+                    }
+                });
+
+
+                // Drag and drop functionality
+                container.on('dragover', function (e) {
+                    e.preventDefault();
+                    container.addClass('dragover');
+                });
+
+                container.on('dragleave drop', function (e) {
+                    e.preventDefault();
+                    container.removeClass('dragover');
+                });
+
+                container.on('drop', function (e) {
+                    const files = e.originalEvent.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput[0].files = files;
+                        fileInput.trigger('change');
+                    }
+                });
+            });
+        });
+
+
+
+        $(document).ready(function () {
+    // Loop over all upload containers
+    $('.file-upload-container').each(function () {
+        const container = $(this);
+        const fileInput = container.find('input[type="file"]');
+        const uploadBtn = container.find('button');
+
+        // ✅ Check if existing file (hidden input or preview link) is present
+        if (container.find('input[type="hidden"]').length > 0 || container.find('a').length > 0) {
+            container.addClass('has-file'); // mark container as valid
+        }
+
+        // Handle file selection
+        fileInput.change(function () {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const validTypes = ['application/pdf'];
+                const maxSize = 5 * 1024 * 1024; // 5MB
+
+                if (!validTypes.includes(file.type)) {
+                    alert('Only PDF files are allowed.');
+                    $(this).val('');
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    alert('File size must be less than 5MB.');
+                    $(this).val('');
+                    return;
+                }
+
+                // ✅ mark container green
+                container.addClass('has-file');
+
+                // Show selected file name
+                container.find('.file-name').remove();
+                container.append(`<div class="file-name text-success">
+                    📄 ${file.name}
+                </div>`);
+            }
+        });
+
+        // Drag and drop
+        container.on('dragover', function (e) {
+            e.preventDefault();
+            container.addClass('dragover');
+        });
+
+        container.on('dragleave drop', function (e) {
+            e.preventDefault();
+            container.removeClass('dragover');
+        });
+
+        container.on('drop', function (e) {
+            const files = e.originalEvent.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput[0].files = files;
+                fileInput.trigger('change');
+            }
+        });
+    });
+});
+
+    </script>
+
+
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            let selectedPlant = "{{ old('plant', $vms->section_id ?? '') }}";
+
+
+            // Division change
+            $('#division').on('change', function () {
+                var division_ID = $(this).val();
+                $("#plant").html('<option value="">--Select Plant--</option>');
+
+                if (division_ID) {
+                    $.ajax({
+                        type: 'GET',
+                        url: "{{ route('admin.departmentGet_vendor_mis', '') }}/" + division_ID,
+                        dataType: "json",
+                        success: function (data) {
+                            $.each(data, function (i, item) {
+                                $("#plant").append('<option value="' + item.id + '">' + item.name + '</option>');
+                            });
+
+                            // If we have a saved Plant → select it + trigger change
+                            if (selectedPlant) {
+                                $("#plant").val(selectedPlant).trigger('change');
+                                selectedPlant = ''; // prevent infinite loop
+                            }
+                        }
+                    });
+                }
+            });
+
+
+
+            // On page load → trigger division change if already selected
+            if ($('#division').val()) {
+                $('#division').trigger('change');
+            }
+        });
+
+
+
+    </script>
+
+
+    <style>
+        /* Add this to your existing styles */
+        .file-upload-success {
+            color: #198754;
+            display: none;
+        }
+
+        .file-upload-container.has-file {
+            border-color: #198754;
+            background-color: rgba(25, 135, 84, 0.05);
+        }
+
+        .file-info {
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+
+    <!-- Update your JavaScript with this: -->
+    <style>
+        /* Add this to your existing styles */
+        .file-upload-success {
+            color: #198754;
+            display: none;
+        }
+
+        .file-upload-container.has-file {
+            border-color: #198754;
+            background-color: rgba(25, 135, 84, 0.05);
+        }
+
+        .file-info {
+            margin-top: 10px;
+            display: none;
+            padding: 5px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            color: #2e7d32;
+        }
+    </style>
+
+    <style>
+        /* Add this to your existing styles */
+        .file-upload-success {
+            color: #198754;
+            display: none;
+        }
+
+        .file-upload-container.has-file {
+            border-color: #198754;
+            background-color: rgba(25, 135, 84, 0.05);
+        }
+
+        .file-upload-container.has-error {
+            border-color: #dc3545;
+            background-color: rgba(220, 53, 69, 0.05);
+        }
+
+        .file-info {
+            margin-top: 10px;
+            display: none;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .file-info.success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .file-info.error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            $('.file-upload-container').each(function () {
+                const container = $(this);
+                const fileInput = container.find('input[type="file"]');
+                const uploadBtn = container.find('button');
+                const fileInfo = $('<div class="file-info"></div>');
+
+                uploadBtn.after(fileInfo);
+
+                uploadBtn.click(function () {
+                    fileInput.click();
+                });
+
+                fileInput.change(function () {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                        const maxSize = 2 * 1024 * 1024; // 2MB
+
+                        container.removeClass('has-error has-file');
+                        fileInfo.removeClass('success error').hide();
+
+                        if (!validTypes.includes(file.type)) {
+                            showError('Only JPG, PNG, and PDF files are allowed.');
+                            return;
+                        }
+
+                        if (file.size > maxSize) {
+                            showError('File size must be less than 2MB.');
+                            return;
+                        }
+
+                        container.addClass('has-file');
+                        fileInfo.addClass('success')
+                            .html(`<i class="fas fa-check-circle me-2"></i> ${file.name} (${formatFileSize(file.size)})`)
+                            .show();
+                        $(this).removeClass('is-invalid');
+                    } else {
+                        resetFileUI();
+                    }
+                });
+
+                function showError(message) {
+                    alert(message); // Show alert popup
+                    container.addClass('has-error');
+                    fileInput.addClass('is-invalid');
+                    fileInfo.addClass('error')
+                        .html(`<i class="fas fa-exclamation-circle me-2"></i> ${message}`)
+                        .show();
+                    fileInput.val('');
+                }
+
+                function resetFileUI() {
+                    container.removeClass('has-file has-error');
+                    fileInfo.removeClass('success error').hide();
+                    fileInput.removeClass('is-invalid');
+                }
+
+                function formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                }
+
+                container.on('dragover', function (e) {
+                    e.preventDefault();
+                    container.addClass('dragover');
+                });
+
+                container.on('dragleave drop', function (e) {
+                    e.preventDefault();
+                    container.removeClass('dragover');
+                });
+
+                container.on('drop', function (e) {
+                    const files = e.originalEvent.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput[0].files = files;
+                        fileInput.trigger('change');
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+
+    <script type=" text/javascript" src="{{ asset('js/app.js') }}"> </script>
+    <script type=" text/javascript" src="{{ asset('js/sweetalert.js') }}"> </script>
+
+    <script type=" text/javascript" src="{{ asset('js/jquery.dataTables.min.js') }}"> </script>
+    <script type="text/javascript" src="{{ asset('js/dataTables.buttons.min.js') }}"> </script>
+    <script type="text/javascript" src="{{ asset('js/jszip.min.js') }}"> </script>
+    <script type="text/javascript" src="{{ asset('js/buttons.html5.min.js') }}"> </script>
+    <script type="text/javascript" src="{{ asset('js/all.js') }}"> </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.22.0/autocomplete.jquery.min.js"
+        integrity="sha512-sYSJW8c3t/hT4R6toey7NwQmlrPMTqvDk10hsoD8oaeXUZRexAzrmpp5kVlTfy6Ru7b1+Tte2qBrRE7FOX1vgA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- jQuery UI JS -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <!-- jQuery UI CSS (for styling the autocomplete dropdown) -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script type="text/javascript">
+        var path = "{{ route('admin.autocomplete_silo') }}";
+        $("#work_order_no").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: path,
+                    type: 'GET',
+                    dataType: "json",
+                    data: {
+                        search: request.term
+                    },
+                    success: function (data) {
+                        response(data.map(item => {
+                            return item.order_code
+                        }));
+                    }
+                });
+            },
+        });
+    </script>
+    <script type="text/javascript">
+        $("#work_order_no").blur(function (e) {
+            if ($(this).val() != "") {
+                var cid = $(this).val();
+                // alert(cid);
+                $.ajax({
+                    type: "GET",
+                    url: "{{route('admin.autoworkorder_silo')}}/" + cid,
+                    contentType: 'application/json',
+                    data: { cid: $(this).val() },
+                    dataType: "json",
+                    success: function (data) {
+                        //  alert(data);
+                        $("#validity").val(data);
+                    }
+                })
+            }
+        });
+
+    </script>
+
+
+
+
+
+
+    <script>
+        document.getElementById("consentCheck").addEventListener("change", function () {
+            const finalBtn = document.getElementById("btnFinalSubmit");
+            finalBtn.disabled = !this.checked; // enable only if checked
+        });
+        document.getElementById('nextsave').addEventListener('click', e => {
+            e.preventDefault();
+
+            document.getElementById('statusField').value = "draft";
+
+            saveForm("Saved successfully!", () => { });
+        });
+        document.getElementById('btnDraft').addEventListener('click', e => {
+            e.preventDefault();
+
+            if (!document.getElementById("consentCheck").checked) {
+                alert("You must give consent before submitting!");
+                return;
+            }
+
+            document.getElementById('statusField').value = "draft";
+
+            saveForm("Draft submission successful!", () => {
+                // Show SweetAlert first
                 Swal.fire({
                     icon: 'success',
-                    title: 'Success',
-                    text: data.message || 'Form submitted successfully!',
+                    title: 'Success!',
+                    text: "Draft submission successful!",
+                    timer: 2000,
+                    showConfirmButton: false
                 }).then(() => {
-                    location.reload(); // Reload page after success
+                    // Reload page after SweetAlert closes
+                    location.reload();
                 });
-            })
-            .catch(error => {
-                console.error('Form submission error:', error);
+            });
+        });
 
+
+        document.getElementById('btnFinalSubmit').addEventListener('click', e => {
+            e.preventDefault();
+            document.getElementById('statusField').value = "final";
+
+            saveForm("Final submission successful!", () => {
+                // Show SweetAlert first
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Submission Failed',
-                    html: `<small>${error.message.replace(/\n/g, '<br>')}</small>`
+                    icon: 'success',
+                    title: 'Success!',
+                    text: "Final submission successful!",
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Reload page after SweetAlert closes
+                    location.reload();
                 });
-            })
-            .finally(() => {
-                // Reset button state
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.innerText = 'Submit';
-            });
-    });
-</script>
-
-
-
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-{{--
-<script>
-
-    document.getElementById('form').addEventListener('submit', function () {
-        const submitBtn = document.getElementById('submit-btn');
-        const spinner = document.getElementById('spinner');
-        const btnText = document.getElementById('btn-text');
-
-        // Show loading state
-        submitBtn.disabled = true;
-        spinner.classList.remove('d-none'); // Show spinner
-        btnText.innerText = 'Processing...';
-    });
-</script> --}}
-
-
-
-
-<!-- SweetAlert -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-
-
-
-
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const dropzones = document.querySelectorAll('.dropzone-wrapper');
-
-        dropzones.forEach(function (zone) {
-            const input = zone.querySelector('input[type="file"]');
-            const desc = zone.querySelector('.dropzone-desc');
-
-            let errorMsg = zone.querySelector('small.error-msg');
-            if (!errorMsg) {
-                errorMsg = document.createElement('small');
-                errorMsg.classList.add('error-msg', 'text-danger');
-                zone.appendChild(errorMsg);
-            }
-
-            function showError(message) {
-                errorMsg.textContent = message;
-                zone.classList.add('error');
-            }
-
-            function clearError() {
-                errorMsg.textContent = '';
-                zone.classList.remove('error');
-            }
-
-            function isPdfFile(file) {
-                return file.name.toLowerCase().endsWith('.pdf');
-            }
-
-            function isFileSizeValid(file) {
-                return file.size <= 2 * 1024 * 1024; // 2 MB
-            }
-
-            input.addEventListener('change', function () {
-                if (input.files.length > 0) {
-                    const file = input.files[0];
-                    if (!isPdfFile(file)) {
-                        showError('Only PDF files are allowed!');
-                        input.value = "";
-                        zone.classList.remove('filled');
-                        desc.innerHTML = '<i class="fa fa-upload"></i> Drag & Drop file or click';
-                    } else if (!isFileSizeValid(file)) {
-                        showError('File must be less than or equal to 2 MB!');
-                        input.value = "";
-                        zone.classList.remove('filled');
-                        desc.innerHTML = '<i class="fa fa-upload"></i> Drag & Drop file or click';
-                    } else {
-                        zone.classList.add('filled');
-                        desc.textContent = file.name;
-                        clearError();
-                    }
-                } else {
-                    zone.classList.remove('filled');
-                    desc.innerHTML = '<i class="fa fa-upload"></i> Drag & Drop file or click';
-                    clearError();
-                }
-            });
-
-            zone.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                zone.classList.add('dragover');
-            });
-
-            zone.addEventListener('dragleave', function () {
-                zone.classList.remove('dragover');
-            });
-
-            zone.addEventListener('drop', function (e) {
-                e.preventDefault();
-                zone.classList.remove('dragover');
-
-                const dt = e.dataTransfer;
-                if (dt.files.length > 0) {
-                    const file = dt.files[0];
-                    if (!isPdfFile(file)) {
-                        showError('Only PDF files are allowed!');
-                        zone.classList.remove('filled');
-                        desc.innerHTML = '<i class="fa fa-upload"></i> Drag & Drop file or click';
-                    } else if (!isFileSizeValid(file)) {
-                        showError('File must be less than or equal to 2 MB!');
-                        zone.classList.remove('filled');
-                        desc.innerHTML = '<i class="fa fa-upload"></i> Drag & Drop file or click';
-                    } else {
-                        zone.classList.add('filled');
-                        desc.textContent = file.name;
-                        clearError();
-                    }
-                }
             });
         });
 
-        // ⭐ Dynamic toggle of file input required state
-        const numericInputs = document.querySelectorAll('.indicator-value');
 
-        numericInputs.forEach(function (input) {
-            input.addEventListener('input', function () {
-                const formGroup = input.closest('.form-group');
-                const attachmentInput = formGroup.querySelector('input[type="file"]');
-                const attachmentLabel = formGroup.querySelectorAll('label')[1];
+        // function getVal(id) {
+        //     let el = document.getElementById(id);
+        //     if (!el) return "";
+        //     if (el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA") {
+        //         return el.value.trim();
+        //     }
+        //     return el.textContent.trim();
+        // }
+        // function getVal(name) {
+        //     let el = document.querySelector(`[name="${name}"]`);
+        //     if (!el) return "";
+        //     if (el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA") {
+        //         if (el.type === "checkbox") {
+        //             return el.checked ? "Yes" : "No";
+        //         }
+        //         if (el.type === "radio") {
+        //             let checked = document.querySelector(`[name="${name}"]:checked`);
+        //             return checked ? checked.value : "";
+        //         }
+        //         return el.value.trim();
+        //     }
+        //     return el.textContent.trim();
+        // }
 
-                // Remove existing message
-                const existingStar = attachmentLabel.querySelector('.mandatory-star');
-                if (existingStar) existingStar.remove();
 
-                const value = parseInt(input.value || 0);
-                const star = document.createElement('span');
-                star.classList.add('text-danger', 'mandatory-star');
 
-                if (value > 0) {
-                    star.innerHTML = '<strong>* </strong>&nbsp;(Please upload a file not larger than 2MB)';
-                    attachmentLabel.appendChild(star);
-                    attachmentInput.removeAttribute('disabled');
-                    attachmentInput.setAttribute('', '');
-                } else {
-                    star.innerHTML = '&nbsp;(Not Required to upload file)';
-                    attachmentLabel.appendChild(star);
 
-                    attachmentInput.removeAttribute('required');
-                    attachmentInput.setAttribute('disabled', 'disabled');
+
+
+
+        function getVal(name) {
+            let el = document.querySelector(`[name="${name}"]`);
+            if (!el) return "";
+
+            if (el.tagName === "INPUT") {
+                if (el.type === "checkbox") {
+                    return el.checked ? "Yes" : "No";
                 }
-            });
-        });
-    });
-
-
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const dropzones = document.querySelectorAll('.file-dropzone');
-        const MAX_FILE_SIZE_MB = 2;
-
-        dropzones.forEach(dropzone => {
-            const fileInputId = dropzone.getAttribute('data-target');
-            const fileInput = document.getElementById(fileInputId);
-
-            let messageBox = dropzone.querySelector('.error-message');
-            if (!messageBox) {
-                messageBox = document.createElement('div');
-                messageBox.classList.add('error-message');
-                messageBox.style.color = 'red';
-                messageBox.style.fontSize = '0.85em';
-                messageBox.style.marginTop = '5px';
-                dropzone.appendChild(messageBox);
-            }
-
-            const showError = (msg) => {
-                messageBox.textContent = msg;
-                dropzone.classList.remove('success');
-                dropzone.querySelector('span').textContent = "Drag & drop PDF here or click to upload";
-                fileInput.value = '';
-            };
-
-            const clearError = () => {
-                messageBox.textContent = '';
-            };
-
-            dropzone.addEventListener('click', () => fileInput.click());
-
-            fileInput.addEventListener('change', () => {
-                const file = fileInput.files[0];
-                if (file) {
-                    if (file.type !== "application/pdf") {
-                        showError("Only PDF files are allowed.");
-                    } else if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-                        showError("File size exceeds 2MB limit.");
-                    } else {
-                        dropzone.querySelector('span').textContent = file.name;
-                        dropzone.classList.add('success');
-                        clearError();
+                if (el.type === "radio") {
+                    let checked = document.querySelector(`[name="${name}"]:checked`);
+                    return checked ? checked.value : "";
+                }
+                if (el.type === "file") {
+                    if (el.files && el.files.length > 0) {
+                        let links = [];
+                        for (let f of el.files) {
+                            let url = URL.createObjectURL(f); // temporary blob URL
+                            links.push(`<a href="${url}" target="_blank">${f.name}</a>`);
+                        }
+                        return links.join(", ");
                     }
-                } else {
-                    dropzone.classList.remove('success');
-                    showError("No file selected.");
+                    return "No file chosen";
                 }
-            });
+                return el.value.trim();
+            }
 
-            dropzone.addEventListener('dragover', e => {
-                e.preventDefault();
-                dropzone.classList.add('dragover');
-            });
+            if (el.tagName === "SELECT") {
+                let sel = el.options[el.selectedIndex];
+                return sel ? sel.text.trim() : "";
+            }
 
-            dropzone.addEventListener('dragleave', () => {
-                dropzone.classList.remove('dragover');
-            });
+            if (el.tagName === "TEXTAREA") {
+                return el.value.trim();
+            }
 
-            dropzone.addEventListener('drop', e => {
-                e.preventDefault();
-                dropzone.classList.remove('dragover');
-                const file = e.dataTransfer.files[0];
-
-                if (file) {
-                    if (file.type !== "application/pdf") {
-                        showError("Only PDF files are allowed.");
-                        return;
-                    }
-                    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-                        showError("File is too large. Maximum allowed size is 2MB.");
-                        return;
-                    }
-
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    fileInput.files = dataTransfer.files;
-
-                    dropzone.querySelector('span').textContent = file.name;
-                    dropzone.classList.add('success');
-                    clearError();
-                } else {
-                    showError("No file dropped.");
-                }
-            });
-        });
-
-        // ✅ Specific logic for lag6_val only
-        const lag6Input = document.getElementById('lag6_val');
-        if (lag6Input) {
-            lag6Input.addEventListener('input', function () {
-                const formGroup = lag6Input.closest('.form-group');
-                const attachmentInput = formGroup.querySelector('input[type="file"]');
-                const attachmentLabel = formGroup.querySelectorAll('label')[1];
-
-                // Remove existing star
-                const existingStar = attachmentLabel.querySelector('.mandatory-star');
-                if (existingStar) existingStar.remove();
-
-                const value = parseInt(lag6Input.value || 0);
-                const star = document.createElement('span');
-                star.classList.add('text-danger', 'mandatory-star');
-
-                if (value > 0) {
-                    star.innerHTML = '<strong>* </strong>&nbsp;(Please upload a file not larger than 2MB)';
-                    attachmentLabel.appendChild(star);
-                    attachmentInput.removeAttribute('disabled');
-                    attachmentInput.setAttribute('required', 'required');
-                } else {
-                    star.innerHTML = '&nbsp;(Not Required to upload file)';
-                    attachmentLabel.appendChild(star);
-                    attachmentInput.removeAttribute('required');
-                    attachmentInput.setAttribute('disabled', 'disabled');
-                }
-            });
-
-            // ✅ Trigger logic on page load
-            lag6Input.dispatchEvent(new Event('input'));
+            return el.textContent.trim();
         }
-    });
-
-</script>
 
 
+   
+function setValue(id, val) {
+    let el = document.getElementById(id);
+    if (!el) return;
 
-
-
-
-
-<script type="text/javascript" src="{{ asset('js/app.js') }}"> </script>
-<script type=" text/javascript" src="{{ asset('js/sweetalert.js') }}"> </script>
-
-<script type="text/javascript" src="{{ asset('js/jquery.dataTables.min.js') }}"> </script>
-<script type="text/javascript" src="{{ asset('js/dataTables.buttons.min.js') }}"> </script>
-<script type="text/javascript" src="{{ asset('js/jszip.min.js') }}"> </script>
-<script type="text/javascript" src="{{ asset('js/buttons.html5.min.js') }}"> </script>
-<script type="text/javascript" src="{{ asset('js/all.js') }}"> </script>
-
-<!-- <script type="text/javascript" src="{{ asset('node_modules/datatables.net-bs4/js/dataTables.bootstrap4.min.js') }}"> </script> -->
-<script type="text/javascript">
-    function form_validate() {
-        var flag = true;
-        $(".rec").each(function (e) {
-
-            if ($(this).val() == "") {
-                $(this).addClass("verror");
-                flag = false;
-            }
-            else {
-                $(this).removeClass("verror");
-            }
-        })
-        if (flag == true) {
-            var c = confirm("Are you sure want to save.");
-            if (c) {
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        else {
-            return false;
-        }
+    if (!val) {
+        el.innerText = "";
+        return;
     }
-</script>
+
+    // If it's a file object (from getFileVal)
+    if (typeof val === "object") {
+        // For images show thumbnail, else just a link
+        const isImage = /\.(jpg|jpeg|png|gif)$/i.test(val.name);
+        if (isImage) {
+            el.innerHTML = `<a href="${val.url}" target="_blank">
+                                <img src="${val.url}" alt="${val.name}" style="max-height:60px;"/>
+                            </a>`;
+        } else {
+            el.innerHTML = `<a href="${val.url}" target="_blank">${val.name}</a>` 
+                + (val.isNew ? " <em>(new)</em>" : "");
+        }
+    } else {
+        // Plain text values
+        el.innerText = val;
+    }
+}
+
+function getFileVal(name) {
+    let input = document.getElementById(name);
+    let existingFile = getVal("existing_" + name);
+
+    // Case 1: User uploaded a new file
+    if (input && input.files && input.files.length > 0) {
+        let file = input.files[0];
+        return {
+            url: URL.createObjectURL(file), // blob URL for preview
+            name: file.name,
+            isNew: true
+        };
+    }
+
+    // Case 2: Show existing saved file
+    if (existingFile) {
+        return {
+            url: "/" + existingFile,
+            name: existingFile.split("/").pop(),
+            isNew: false
+        };
+    }
+
+    return null;
+}
+
+// 🔹 Fill preview modal
+function fillPreview() {
+    // Basic Info
+    setValue("pv_work_order_no", getVal("work_order_no"));
+    setValue("pv_validity", getVal("validity"));
+    setValue("pv_division", getVal("division"));
+    setValue("pv_section", getVal("plant"));
+    setValue("pv_approver", getVal("approver"));
+
+    // Legal Compliance
+    setValue("pv_vehicle_reg_no", getVal("vehicle_reg_no"));
+    setValue("pv_vehicle_reg_file", getFileVal("vehicle_reg_file"));
+    setValue("pv_insurance_from", getVal("insurance_from"));
+    setValue("pv_insurance_to", getVal("insurance_to"));
+    setValue("pv_insurance_file", getFileVal("insurance_file"));
+    setValue("pv_fitness_date", getVal("fitness_date"));
+    setValue("pv_fitness_file", getFileVal("fitness_file"));
+    setValue("pv_puc_inspection_date", getVal("puc_inspection_date"));
+    setValue("pv_puc_due_date", getVal("puc_due_date"));
+    setValue("pv_puc_file", getFileVal("puc_file"));
+    setValue("pv_valid_road_permit_date", getVal("valid_road_permit_date"));
+    setValue("pv_valid_road_permit_due_date", getVal("valid_road_permit_due_date"));
+    setValue("pv_road_permit_certificate", getFileVal("road_permit_certificate"));
+
+    // Safety Parameters
+    setValue("pv_vehicle_deputed_for", getVal("vehicle_deputed_for"));
+    setValue("pv_dfms_available", getVal("dfms_available"));
+    setValue("pv_gps_tracker_available", getVal("gps_tracker_available"));
+    setValue("pv_hatch_strainers", getVal("hatch_strainers"));
+    setValue("pv_fuel_tank_stainers", getVal("fuel_tank_stainers"));
+    setValue("pv_battery_placement", getVal("battery_placement"));
+    setValue("pv_fire_extinguisher", getVal("fire_extinguisher"));
+    setValue("pv_first_aid_box", getVal("first_aid_box"));
+    setValue("pv_stepney", getVal("stepney"));
+    setValue("pv_scotch_block", getVal("scotch_block"));
+    setValue("pv_earth_block", getVal("earth_block"));
+
+    // Valid Certificates
+    setValue("pv_pressure_vessel_test_date", getVal("pressure_vessel_test_date"));
+    setValue("pv_pressure_vessel_due_date", getVal("pressure_vessel_due_date"));
+    setValue("pv_pressure_vessel_file", getFileVal("pressure_vessel_file"));
+    setValue("pv_pressure_gauge_date", getVal("pressure_gauge_date"));
+    setValue("pv_pressure_gauge_due_date", getVal("pressure_gauge_due_date"));
+    setValue("pv_pressure_gauge_file", getFileVal("pressure_gauge_file"));
+    setValue("pv_pressure_relief_test_date", getVal("pressure_relief_test_date"));
+    setValue("pv_pressure_relief_due_date", getVal("pressure_relief_due_date"));
+    setValue("pv_pressure_relief_file", getFileVal("pressure_relief_file"));
+}
+
+
+        // attach to preview button
+        document.getElementById("savepreview").addEventListener("click", function (e) {
+            e.preventDefault();
+            fillPreview();
+            // show modal
+            var previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+
+            document.getElementById('statusField').value = "draft";
+
+            saveForm("Saved successfully!", () => { });
+
+            previewModal.show();
+        });
+
+
+
+
+
+
+
+
+        function showLoader(text = "Saving...") { const loader = document.getElementById('pageLoader'); loader.querySelector('p').innerText = text; loader.classList.remove('d-none'); }
+        function hideLoader() { document.getElementById('pageLoader').classList.add('d-none'); }
+
+        function saveForm(successMessage, callback = null) {
+            showLoader("Saving...");
+            const form = document.getElementById('form');
+            const formData = new FormData(form);
+
+
+
+            fetch('{{ route("vendor_silo.store") }}', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.id) {
+                        document.getElementById('recordId').value = data.id;
+                    }
+
+                    // Show SweetAlert instead of alert
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: successMessage,
+                        timer: 2000,              // Auto close after 2 seconds
+                        showConfirmButton: false
+                    });
+
+                    if (callback) callback();
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: "Something went wrong while saving.",
+                    });
+                })
+                .finally(() => { hideLoader(); });
+        }
+
+
+
+    </script>

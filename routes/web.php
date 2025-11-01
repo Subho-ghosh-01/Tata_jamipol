@@ -57,23 +57,36 @@ Route::prefix('vms')->name('vms.')->group(function () {
 	Route::get('vms_report/{id?}', 'VMSController@vms_report')->name('vms_report');
 	Route::get('vms_dashboard/{id?}', 'VMSController@vms_dashboard')->name('vms_dashboard');
 });
+Route::get('vendor_mis/mis_report/{id?}', 'Vendor_misController@mis_report')->name('mis_report');
+Route::get('vendor_mis/mis_dashboard/{id?}', 'Vendor_misController@mis_dashboard')->name('mis_dashboard');
+Route::post('returnsilo', 'Vendor_siloController@return_silo')->name('vendor_silo.returnsilo');
+
+// web.php
+Route::get('/vehicle/get/{id}', 'VMSController@getVehicle')->name('vehicle.get');
 
 
 Route::post('edit_data_update', 'Vendor_misController@edit_data_update')->name('vendor_mis.edit_data_update');
 Route::get('vendor_mis/edit_entry/{id?}', 'Vendor_misController@edit_entry')->name('vendor_mis.edit_entry');
-Route::get('vendor_mis/edit_data_ifream/{id?}', 'Vendor_misController@edit_data_ifream')->name('vendor_mis.edit_data_ifream');
+Route::get('vendor_mis/edit_data_ifream/{id?}/{user_id}', 'Vendor_misController@edit_data_ifream')->name('vendor_mis.edit_data_ifream');
 Route::post('update_data', 'Vendor_misController@update_data')->name('vendor_mis.update_data');
-Route::get('vendor_mis/edit_ifream/{id?}', 'Vendor_misController@edit_ifream')->name('vendor_mis.edit_ifream');
+Route::get('vendor_mis/edit_ifream/{id?}/{user_id}', 'Vendor_misController@edit_ifream')->name('vendor_mis.edit_ifream');
 Route::get('vendor_mis/create_ifream/{id?}', 'Vendor_misController@create_ifream')->name('vendor_mis.create_ifream');
 Route::post('update_return_approval/{vms_id?}', 'VMS_ifreamController@update_return_approval')->name('vms_ifream.update_return_approval');
 Route::get('vendor_silo/create_ifream/{id?}', 'Vendor_siloController@create_ifream')->name('vendor_silo.create_ifream');
 Route::post('update_driver_details', 'VMS_ifreamController@update_driver_details')->name('vms_ifream.update_driver_details');
 
+Route::get('vendor_silo/edit_ifream/{id?}/{user_id}', 'Vendor_siloController@edit_ifream')->name('vendor_silo.edit_ifream');
 
 Route::get('vms_ifream/{id}/{user_id}', 'VMS_ifreamController@edit')
 	->name('vms_ifream.edit');
-
-
+Route::get('vendor_silo/edit_entry/{id?}', 'Vendor_siloController@edit_entry')->name('vendor_silo.edit_entry');
+Route::get('vendor_silo/edit_data_ifream/{id?}/{user_id}', 'Vendor_siloController@edit_data_ifream')->name('vendor_silo.edit_data_ifream');
+Route::get('vendor_silo/index_silo/{id?}', 'SiloDailyInspectionController@index_silo_daily')
+	->name('vendor_silo.index_silo_daily');
+Route::get('vendor_silo/edit_silo_daily/{id?}', 'SiloDailyInspectionController@edit_silo_daily')
+	->name('vendor_silo.edit_silo_daily');
+Route::get('vendor_silo/edit_data_ifream_silo_daily/{id?}/{user_id}', 'SiloDailyInspectionController@edit_data_ifream_silo_daily')
+	->name('vendor_silo.edit_data_ifream_silo_daily');
 
 Route::group(['middleware' => 'auth'], function () {
 	Route::post('/logout', 'LoginController@logout')->name('logout');
@@ -152,7 +165,10 @@ Route::group(['middleware' => 'auth'], function () {
 		Route::get('daily-attendence-import', 'GatePassCLMSController@DailyattendenceView')->name('daily_attendence_upload');
 		Route::match(['get', 'post'], 'daily-attendence-view', 'GatePassCLMSController@DailyattendenceViewtable')
 			->name('daily_attendence_view');
-
+		Route::match(['get', 'post'], 'bonus-calculation', 'GatePassCLMSController@bonus_calculation2')
+			->name('bonus_calculation');
+		Route::match(['get', 'post'], 'ot-calculation', 'GatePassCLMSController@ot_calculation2')
+			->name('ot_calculation');
 		Route::post('getuserlist', 'UserController@getListUsers')->name('getuserlist');
 		Route::post('renew-issuer', 'ListPermitController@RenewUpdate')->name('renew_issuer');
 		Route::get('renew-view/{id?}', 'ListPermitController@RenewView')->name('renew_view');
@@ -164,7 +180,7 @@ Route::group(['middleware' => 'auth'], function () {
 		Route::post('get-department', 'DepartmentController@DepartmentFilter')->name('getdepartmentlist');
 		Route::post('getjoblist', 'JobController@getListJobs')->name('getjoblist');
 		Route::get('getpass/{id?}/{name?}', 'PermitController@get')->name('autocomplete_gate_pass');
-		Route::get('get_electrical_license_rec/{id?}', 'ListPermitController@Receiver_electrical_license')->name('recevier_electrical_license');
+		Route::get('get_electrical_license_rec/{id?}', action: 'ListPermitController@Receiver_electrical_license')->name('recevier_electrical_license');
 		Route::get('voltagelevelrec/{vlevel?}', 'ListPermitController@getvoltageReceiver')->name('sendvoltagelevelreciver');
 		Route::get('get_electrical_license/{id?}', 'ListPermitController@Issuer_electrical_license')->name('issuer_electrical_license');
 		Route::get('voltagelevel/{vlevel?}', 'ListPermitController@getvoltageIssuer')->name('sendvoltagelevel');
@@ -204,7 +220,7 @@ Route::group(['middleware' => 'auth'], function () {
 		Route::get('autocomplete_silo', 'Vendor_siloController@autocomplete_silo')->name('autocomplete_silo');
 		Route::get('exit_emp/{id?}/{message_remarks?}', 'GatePassCLMSController@exit_emp')->name('exit_emp');
 		Route::get('/monthly-attendance/{user_id?}/{month?}/{year?}', 'GatePassCLMSController@getMonthlyAttendance')->name('getMonthlyAttendance');
-		Route::post('/monthly-attendance-update/{day?}/{newStatus?}/{empPno?}/{month?}/{year?}', 'GatePassCLMSController@updateAttendance')->name('updateAttendance');
+		Route::post('/monthly-attendance-update/{day?}/{newStatus?}/{empPno?}/{month?}/{year?}/{ot_hours?}', 'GatePassCLMSController@updateAttendance')->name('updateAttendance');
 		Route::get('/monthly-attendance-check/{day?}/{newStatus?}/{empPno?}/{month?}/{year?}', 'GatePassCLMSController@updateAttendance_check')->name('updateAttendance_check');
 
 		Route::get('autoworkorder/{id?}', 'GatePassCLMSController@autoworkorder')->name('autoworkorder');
@@ -217,6 +233,8 @@ Route::group(['middleware' => 'auth'], function () {
 
 		Route::get('department_vendor_mis/{id?}', 'Vendor_misController@getDepartment')->name('departmentGet_vendor_mis');
 		Route::get('plant_vendor_mis/{id?}', 'Vendor_misController@getPlant')->name('PlantGet_vendor_mis');
+		Route::get('vendor_vendor_mis/{id?}', 'Vendor_misController@getvendor')->name('vendorGet_vendor_mis');
+		Route::get('vendors_by_plant/{plantId}', 'Vendor_misController@getVendorsByPlant')->name('vendorsByPlant');
 		// Route::get('work_order/{id?}','GatepassController@getworkorder')->name('work_order');
 		Route::get('worker/{id?}', 'GatePassCLMSController@getworker')->name('workerGet');
 		Route::get('skill_rate/{id?}', 'GatePassCLMSController@getskillrate')->name('skill_rateGet');
@@ -249,7 +267,11 @@ Route::group(['middleware' => 'auth'], function () {
 		// routes/web.php
 		Route::post('vms/filter-json', 'VMSController@filterJson')->name('vms.filterJson');
 
+
+		Route::post('vendor_mis/filter-json', 'Vendor_misController@filterJson')->name('vendor_mis.filterJson');
+
 		Route::post('vms/filter-json_dashboard', 'VMSController@filterJson_dashboard')->name('vms.filterJson_dashboard');
+		Route::post('vendo_mis/filter-json_dashboard', 'Vendor_misController@filterJson_dashboard')->name('vendor_mis.filterJson_dashboard');
 
 
 
@@ -287,12 +309,12 @@ Route::group(['middleware' => 'auth'], function () {
 		Route::resource('vendor_ecm', 'VendorECMController');
 		Route::resource('vendor_hyr', 'VendorHYRController');
 		Route::resource('vendor_holiday', 'VendorholidayController');
-
-
+		Route::resource('silo_master', 'Silo_masterController');
 	});
 
 });
 
 Route::resource('gatepass_register_permit', 'GatePassRegisterController');
+Route::resource('silo_daily_inspection', 'SiloDailyInspectionController');
 Route::post('/check_otp', 'GatePassRegisterController@check_otp2')->name('check_otp'); //Email Check and otp send
 

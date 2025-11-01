@@ -543,8 +543,10 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('id')->first();
                     <select class="form-control" id="driver_type" name="driver_type" required>
                         <option value="">--Select--</option>
                         <option value="self" <?php if($vms->driven_by == 'self'): ?> <?php echo e('selected'); ?> <?php endif; ?>>🙋‍♂️ Self</option>
-                        <option value="driver" <?php if($vms->driven_by == 'driver'): ?> <?php echo e('selected'); ?> <?php endif; ?>>👤 Through Driver
-                        </option>
+                        <?php if($type == 'Employee'): ?>
+                            <option value="driver" <?php if($vms->driven_by == 'driver'): ?> <?php echo e('selected'); ?> <?php endif; ?>>👤 Through Driver
+                            </option>
+                        <?php endif; ?>
                     </select>
                 </div>
 
@@ -572,7 +574,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('id')->first();
                                 value="<?php echo e($vms->license_valid_from); ?>" required>
                         </div>
                         <div class="col">
-                            <input type="date" class="form-control" name="license_valid_to"
+                            <input type="date" class="form-control future-date" name="license_valid_to"
                                 value="<?php echo e($vms->license_valid_to); ?>" required>
                         </div>
                     </div>
@@ -984,7 +986,52 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('id')->first();
 
 </script>
 
+<script>// Tomorrow's date
+    function getTomorrow() {
+        const t = new Date();
+        t.setDate(t.getDate() + 1);
+        return t.toISOString().split("T")[0];
+    }
 
+    const tomorrow = getTomorrow();
+
+    // Restrict only future-date inputs
+    document.querySelectorAll('input.future-date').forEach(input => {
+        input.setAttribute("min", tomorrow);
+
+        // Validate typed input
+        input.addEventListener("blur", function () {
+            if (this.value && this.value < tomorrow) {
+                alert("Past dates are not allowed!");
+                this.value = tomorrow; // reset to tomorrow if invalid
+            }
+        });
+    });
+
+    // Handle "from" -> "to" only if from input is future-date
+    document.querySelectorAll('input.future-date[data-date="from"]').forEach(fromInput => {
+        fromInput.addEventListener("change", function () {
+            const toInputName = this.name.replace("from", "to");
+            const toInput = document.querySelector(`input[name="${toInputName}"]`);
+            if (toInput) {
+                toInput.setAttribute("min", this.value);
+
+                if (!toInput.value || toInput.value < this.value) {
+                    toInput.value = this.value;
+                }
+            }
+        });
+
+        fromInput.addEventListener("blur", function () {
+            const toInputName = this.name.replace("from", "to");
+            const toInput = document.querySelector(`input[name="${toInputName}"]`);
+            if (toInput && toInput.value < this.value) {
+                toInput.value = this.value;
+            }
+        });
+    });
+
+</script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const dropzones = document.querySelectorAll('.dropzone-wrapper');

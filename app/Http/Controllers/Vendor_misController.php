@@ -12,7 +12,7 @@ use Psy\Readline\Userland;
 use Session;
 use Mail;
 use Illuminate\Support\Facades\Crypt; // ✅ This is important
-
+use Carbon\Carbon;
 
 class Vendor_misController extends Controller
 {
@@ -190,50 +190,82 @@ class Vendor_misController extends Controller
             $lagDocs[$field] = $allDocs;
         }
 
+        $user = UserLogin::select('user_sub_type')->where('id', $uid)->first();
+        $usertype = $user->user_sub_type ?? null;
         // Determine status
         if ($request->input('status') == 'draft') {
             $draft = 'Y';
             $status_main = 'draft';
         } elseif ($request->input('status') == 'final') {
             $draft = 'N';
-            $status_main = 'pending_with_safety';
+            if ($usertype == 3) {
+                $status_main = 'approve';
+            } else {
+                $status_main = 'pending_with_safety';
+
+            }
+
         }
 
-        // Prepare main table data
-        $data = [
-            'plant_id' => $request->plant,
-            'division_id' => $request->division,
-            'department_id' => $request->department,
-            'month' => $request->report_month,
-            'created_by' => $uid,
-            'vendor_id' => $uid,
-            'created_datetime' => now(),
-            'status' => $status_main,
-            'draft' => $draft
-        ];
 
-        // Add lead values/docs
-        for ($i = 1; $i <= 10; $i++) {
-            $data["lead{$i}_val"] = $request->input("lead{$i}_val", 0);
-            $data["lead{$i}_doc"] = json_encode($leadDocs["lead{$i}_doc"]);
-        }
-
-        // Add lag values/docs
-        for ($i = 1; $i <= 6; $i++) {
-            $data["lag{$i}_val"] = $request->input("lag{$i}_val", 0);
-            $data["lag{$i}_doc"] = json_encode($lagDocs["lag{$i}_doc"]);
-        }
 
         // Insert or Update
         if ($request->filled('id')) {
+            $updateData = [
+                'plant_id' => $request->plant,
+                'division_id' => $request->division,
+                'department_id' => $request->department,
+                'month' => $request->report_month,
+                'updated_by' => $uid,
+                'updated_datetime' => now(),
+                'status' => $status_main,
+                'draft' => $draft
+            ];
+
+            // Add lead values/docs to update data
+            for ($i = 1; $i <= 10; $i++) {
+                $updateData["lead{$i}_val"] = $request->input("lead{$i}_val", 0);
+                $updateData["lead{$i}_doc"] = json_encode($leadDocs["lead{$i}_doc"]);
+            }
+
+            // Add lag values/docs to update data
+            for ($i = 1; $i <= 6; $i++) {
+                $updateData["lag{$i}_val"] = $request->input("lag{$i}_val", 0);
+                $updateData["lag{$i}_doc"] = json_encode($lagDocs["lag{$i}_doc"]);
+            }
+
             $vendor_mis_id = $request->id;
-            DB::table('vendor_mis')->where('id', $vendor_mis_id)->update($data);
+            DB::table('vendor_mis')->where('id', $vendor_mis_id)->update($updateData);
 
             // Delete old child rows
             DB::table('vendor_mis_desired')->where('vendor_mis_id', $vendor_mis_id)->delete();
             DB::table('vendor_mis_flow')->where('vendor_mis_id', $vendor_mis_id)->delete();
         } else {
-            $vendor_mis_id = DB::table('vendor_mis')->insertGetId($data);
+            $insertData = [
+                'plant_id' => $request->plant,
+                'division_id' => $request->division,
+                'department_id' => $request->department,
+                'month' => $request->report_month,
+                'created_by' => $uid,
+                'vendor_id' => $uid,
+                'created_datetime' => now(),
+                'status' => $status_main,
+                'draft' => $draft
+            ];
+
+            // Add lead values/docs to insert data
+            for ($i = 1; $i <= 10; $i++) {
+                $insertData["lead{$i}_val"] = $request->input("lead{$i}_val", 0);
+                $insertData["lead{$i}_doc"] = json_encode($leadDocs["lead{$i}_doc"]);
+            }
+
+            // Add lag values/docs to insert data
+            for ($i = 1; $i <= 6; $i++) {
+                $insertData["lag{$i}_val"] = $request->input("lag{$i}_val", 0);
+                $insertData["lag{$i}_doc"] = json_encode($lagDocs["lag{$i}_doc"]);
+            }
+
+            $vendor_mis_id = DB::table('vendor_mis')->insertGetId($insertData);
         }
 
         // Approval flow (child tables)
@@ -276,8 +308,254 @@ class Vendor_misController extends Controller
     }
 
 
+    public function filterJson(Request $request)
+    {
+        $query = DB::table('vendor_mis');
+
+        // Date filters
+        if ($request->from_date) {
+            // convert '2025-09' → '2025-09-01'
+            $fromDate = $request->from_date . '-01';
+            $query->whereDate('created_datetime', '>=', $fromDate);
+        }
+
+        if ($request->to_date) {
+            // convert '2025-09' → '2025-09-30' (last day of month)
+            $toDate = date('Y-m-t', strtotime($request->to_date . '-01'));
+            $query->whereDate('created_datetime', '<=', $toDate);
+        }
 
 
+        $query->where('status', 'approve');
+
+        if ($request->vid) {
+            $query->where('vendor_id', $request->vid);
+        }
+
+        // Division filter
+        if ($request->division) {
+            $query->where('division_id', $request->division);
+        }
+
+        // Plant filter
+        if ($request->plant) {
+            $query->where('plant_id', $request->plant);
+        }
+
+        // Department filter
+        if ($request->department) {
+            $query->where('department_id', $request->department);
+        }
+
+        $query->where('status', 'approve');
+
+        // Draft filter
+
+
+        $data = $query->get()->map(function ($row) {
+            $createdUser = UserLogin::find($row->created_by);
+
+            // Careful: Your mapping of division/plant was swapped in old code
+            $divisionName = Division::find($row->plant_id);
+            $plantName = DB::table('division_new')->find($row->division_id);
+            $departmentName = Department::find($row->department_id);
+
+            return [
+                'division_id' => $divisionName ? $divisionName->name : '',
+                'plant_id' => $plantName ? $plantName->name : '',
+                'department_id' => $departmentName ? $departmentName->department_name : '',
+                'month' => $row->month,
+
+                'lead1_val' => $row->lead1_val,
+                'lead2_val' => $row->lead2_val,
+                'lead3_val' => $row->lead3_val,
+                'lead4_val' => $row->lead4_val,
+                'lead5_val' => $row->lead5_val,
+                'lead6_val' => $row->lead6_val,
+                'lead7_val' => $row->lead7_val,
+                'lead8_val' => $row->lead8_val,
+                'lead9_val' => $row->lead9_val,
+                'lead10_val' => $row->lead10_val,
+
+                'lag1_val' => $row->lag1_val,
+                'lag2_val' => $row->lag2_val,
+                'lag3_val' => $row->lag3_val,
+                'lag4_val' => $row->lag4_val,
+                'lag5_val' => $row->lag5_val,
+                'lag6_val' => $row->lag6_val,
+
+                'vendor_id' => $row->vendor_id,
+                'created_by' => $createdUser ? $createdUser->name : 'N/A',
+                'created_datetime' => $row->created_datetime,
+                'updated_by' => $row->updated_by,
+                'updated_datetime' => $row->updated_datetime,
+                'status' => $row->status,
+                'draft' => $row->draft,
+
+                'vendor_code' => $createdUser ? $createdUser->vendor_code : null,
+            ];
+        });
+
+        return response()->json(['data' => $data]);
+    }
+
+
+
+    public function filterJson_dashboard(Request $request)
+    {
+        $query = DB::table('vendor_mis');
+
+        // Date filter
+        if ($request->from_date) {
+            $fromDate = $request->from_date . '-01';
+            $query->whereDate('created_datetime', '>=', $fromDate);
+        }
+        if ($request->to_date) {
+            $toDate = date('Y-m-t', strtotime($request->to_date . '-01'));
+            $query->whereDate('created_datetime', '<=', $toDate);
+        }
+
+        // Vendor filter
+        if ($request->vendor_id) {
+            $query->where('vendor_id', $request->vendor_id);
+        }
+
+        // Status filter
+        if ($request->status && $request->status !== "All") {
+            $query->where('status', $request->status);
+        }
+
+        // Draft filter
+        if (!is_null($request->draft) && $request->draft !== '') {
+            $query->where('draft', $request->draft);
+        }
+
+        if ($request->division) {
+            $query->where('division_id', $request->division);
+        }
+        if ($request->plant) {
+            $query->where('plant_id', $request->plant);
+        }
+        if ($request->department) {
+            $query->where('department_id', $request->department);
+        }
+
+        if (Session::get('user_typeSession') == 1 && Session::get(key: 'user_sub_typeSession') == 3) {
+
+        } else if (Session::get('user_typeSession') == 1) {
+            $query->where('plant_id', Session::get('user_DivID_Session'));
+        } else {
+            $query->where('plant_id', Session::get('user_DivID_Session'));
+
+        }
+        $query->where('status', 'approve');
+        $data = $query->get();
+
+        // Handle vendor comparison request
+        if ($request->vendor_comparison) {
+            $vendorData = $data->groupBy('vendor_id')->map(function ($vendorRecords, $vendorId) {
+                $vendor = UserLogin::find($vendorId);
+                $totals = ['vendor_id' => $vendorId, 'vendor_name' => $vendor ? $vendor->name : 'Unknown'];
+
+                for ($i = 1; $i <= 10; $i++) {
+                    $totals['lead' . $i . '_val'] = $vendorRecords->sum("lead{$i}_val");
+                }
+
+                for ($i = 1; $i <= 6; $i++) {
+                    $totals['lag' . $i . '_val'] = $vendorRecords->sum("lag{$i}_val");
+                }
+
+                return $totals;
+            })->values();
+
+            return response()->json([
+                'status' => true,
+                'vendor_data' => $vendorData
+            ]);
+        }
+
+        // Total records
+        $total = $data->count();
+
+        // Status wise counts
+        $approved = $data->where('status', 'approve')->count();
+        $rejected = $data->where('status', 'reject')->count();
+        $pending = $data->whereIn('status', ['pending', 'pending_with_safety'])->count();
+
+        // Draft counts
+        $drafts = $data->where('draft', 'Y')->count();
+        $nonDrafts = $data->where('draft', 'N')->count();
+
+        // Initialize Lead & Lag arrays
+        $leadCounts = [];
+        $lagCounts = [];
+
+        for ($i = 1; $i <= 10; $i++) {
+            $leadCounts['lead' . $i . '_val'] = $data->sum("lead{$i}_val");
+        }
+
+        for ($i = 1; $i <= 6; $i++) {
+            $lagCounts['lag' . $i . '_val'] = $data->sum("lag{$i}_val");
+        }
+
+        return response()->json([
+            'status' => true,
+            'counts' => array_merge([
+                'total' => $total,
+                'approved' => $approved,
+                'rejected' => $rejected,
+                'pending' => $pending,
+                'drafts' => $drafts,
+                'nonDrafts' => $nonDrafts
+            ], $leadCounts, $lagCounts)
+        ]);
+    }
+
+
+
+    public function mis_report($mis9_report = null)
+    {
+
+
+        $divisions = DB::table('division_new')->get();
+        if (Session::get('user_sub_typeSession') == 3 && Session::get('user_typeSession') == 1) {
+            $vendors = UserLogin::where('user_type', 2)->get();
+        } else if (Session::get('user_typeSession') == 1) {
+            $vendors = UserLogin::where('user_type', 2)->where('division_id', Session::get('user_DivID_Session'))->get();
+        } else {
+            $vendors = UserLogin::Where('id', Session::get('user_idSession'))->get();
+        }
+        return view(
+            'admin.vendor_mis.mis_report',
+            compact(
+                'divisions',
+                'vendors'
+
+            )
+        );
+
+    }
+
+    public function mis_dashboard($mis_report = null)
+    {
+        //   $divisions = Division::all();
+
+        if (Session::get('user_sub_typeSession') == 3 && Session::get('user_typeSession') == 1) {
+            $vendors = UserLogin::where('user_type', 2)->get();
+        } else if (Session::get('user_typeSession') == 1) {
+            $vendors = UserLogin::where('user_type', 2)->where('division_id', Session::get('user_DivID_Session'))->get();
+        } else {
+            $vendors = UserLogin::Where('id', Session::get('user_idSession'))->get();
+        }
+        $divisions = DB::table('division_new')->get();
+        return view(
+            'admin.vendor_mis.mis_dashboard',
+            compact(
+                'divisions',
+                'vendors'
+            )
+        );
+    }
 
 
 
@@ -307,7 +585,7 @@ class Vendor_misController extends Controller
 
     }
 
-    public function edit_ifream($id)
+    public function edit_ifream($id, $user_id)
     {
 
 
@@ -319,7 +597,8 @@ class Vendor_misController extends Controller
         $divs = DB::table('division_new')->get();
         return view('admin.vendor_mis.edit_ifream', compact(
             'vms_details',
-            'divs'
+            'divs',
+            'user_id'
 
 
         ));
@@ -364,7 +643,7 @@ class Vendor_misController extends Controller
 
     }
 
-    public function edit_data_ifream($id)
+    public function edit_data_ifream($id, $user_id)
     {
 
 
@@ -376,7 +655,8 @@ class Vendor_misController extends Controller
         $divs = DB::table('division_new')->get();
         return view('admin.vendor_mis.edit_data_ifream', compact(
             'vms_details',
-            'divs'
+            'divs',
+            'user_id'
 
 
         ));
@@ -775,8 +1055,8 @@ class Vendor_misController extends Controller
     {
 
 
-        $divisions = DB::table('divisions')
-            ->where('div_id', $id)
+        $divisions = Division::
+            where('div_id', $id)
             ->select('id', 'name')
             ->get();
 
@@ -794,7 +1074,27 @@ class Vendor_misController extends Controller
         return $department;
     }
 
+    public function getvendor($id)
+    {
 
+        if (Session::get('user_sub_typeSession') == 3 && Session::get('user_typeSession') == 1) {
+            $vendors = UserLogin::where('user_type', 2)->get();
+        } else if (Session::get('user_typeSession') == 1) {
+            $vendors = UserLogin::where('user_type', 2)->where('division_id', Session::get('user_DivID_Session'))->get();
+        } else {
+            $vendors = UserLogin::Where('id', Session::get('user_idSession'))->get();
+        }
+
+        //$vendors = UserLogin::where('user_type', 2)->get();
+        return $vendors;
+    }
+
+    public function getVendorsByPlant($plantId)
+    {
+        $vendors = DB::table('userlogins')->where('division_id', $plantId)->where('user_type', 2)->get();
+
+        return response()->json($vendors);
+    }
 
 
     public function destroy($skill)

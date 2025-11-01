@@ -53,6 +53,7 @@
             <a class="dropdown-item" href="<?php echo e(route('admin.gate_pass')); ?>">Gate Pass</a>
             <a class="dropdown-item" href="<?php echo e(route('admin.skill.index')); ?>">Skill</a>
             <a class="dropdown-item" href="<?php echo e(route('admin.settings_master.index')); ?>">Setting</a>
+            <a class="dropdown-item" href="<?php echo e(route('admin.silo_master.index')); ?>">Silo Master</a>
         </div>
     </li>
     <?php endif; ?>
@@ -159,6 +160,79 @@
         </div>
 </li>
 <?php endif; ?>
+
+<li class="nav-item dropdown">
+        <a class="nav-link <?php if(request()->url() == route('vms.index')): ?> <?php echo e('active'); ?> <?php endif; ?> dropdown-toggle" href="" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Vehicle Gate Pass
+        </a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            
+           
+             
+            <?php if(Session::get('user_sub_typeSession') == 3  || (Session::get('vms_yes_no') == 'Yes' && (Session::get('vms_role') == 'Approver' || Session::get('vms_role') == 'Security' ||  Session::get('vms_role') == 'Requester'))): ?> 
+   
+        <a class="nav-link <?php if(request()->url() == route('vms.index')): ?> <?php echo e('active'); ?> <?php endif; ?>" href="<?php echo e(url('vms')); ?>">Vehicle Gate Pass Management System </a>
+    
+     <?php endif; ?>
+     <?php if(Session::get('user_sub_typeSession') == '3' || Session::get('clm_role') == 'Safety_dept'): ?>
+    <a class="nav-link <?php echo e(request()->is('vms/vms_report/found') ? 'active' : ''); ?>" 
+       href="<?php echo e(url('vms/vms_report/found')); ?>">
+        Report/Dashboard
+    </a>
+<?php endif; ?>
+
+
+        </div>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link <?php if(request()->url() == route('vendor_mis.index')): ?> <?php echo e('active'); ?> <?php endif; ?> dropdown-toggle" href="" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Vendor Safety MIS
+        </a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            
+           
+             
+            <?php if(Session::get('user_sub_typeSession') == 3  || (Session::get('vms_yes_no') == 'Yes' && (Session::get('vms_role') == 'Approver' || Session::get('vms_role') == 'Security' ||  Session::get('vms_role') == 'Requester'))): ?> 
+   
+        <a class="nav-link <?php if(request()->url() == route('vendor_mis.index')): ?> <?php echo e('active'); ?> <?php endif; ?>" href="<?php echo e(url('vendor_mis')); ?>">Vendor Safety MIS </a>
+    
+     <?php endif; ?>
+     <?php if(Session::get('user_sub_typeSession') == '3' || Session::get('clm_role') == 'Safety_dept'): ?>
+    <a class="nav-link <?php echo e(request()->is('vendor_mis/mis_report/found') ? 'active' : ''); ?>" 
+       href="<?php echo e(url('vendor_mis/mis_report/found')); ?>">
+        Report/Dashboard
+    </a>
+<?php endif; ?>
+
+
+        </div>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link <?php if(request()->url() == route('vendor_mis.index')): ?> <?php echo e('active'); ?> <?php endif; ?> dropdown-toggle" href="" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Silo Tanker Management
+        </a>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            
+           
+             
+            <?php if(Session::get('user_sub_typeSession') == 3  || (Session::get('vms_yes_no') == 'Yes' && (Session::get('vms_role') == 'Approver' || Session::get('vms_role') == 'Security' ||  Session::get('vms_role') == 'Requester'))): ?> 
+   
+        <a class="nav-link <?php if(request()->url() == route('vendor_silo.index')): ?> <?php echo e('active'); ?> <?php endif; ?>" href="<?php echo e(url('vendor_silo')); ?>">Silo Tanker Management</a>
+        
+<a class="nav-link <?php echo e(request()->is('vendor_silo/index_silo/add') ? 'active' : ''); ?>" 
+       href="<?php echo e(url('vendor_silo/index_silo/add')); ?>">
+       Silo Tanker Management (Daily Inspection)
+    </a>
+
+
+
+     <?php endif; ?>
+    
+
+
+
+        </div>
+    </li>
 
 
      <!--<?php if(Session::get('user_sub_typeSession') == '3'  || Session::get('clm_yes_no') == 'Yes'): ?> 

@@ -2,6 +2,9 @@
 $vms = DB::table('vendor_mis')->where('id', $vms_details->id)->first();
 
 $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
+
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -225,7 +228,7 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
         <!-- Form -->
         <form id="form" method="POST" enctype="multipart/form-data">
             @csrf
-            <input type="hidden" value="{{$id ?? ''}}" name="uid">
+            <input type="hidden" value="{{$user_id ?? ''}}" name="uid">
             <input type="hidden" name="status" id="statusField" value="draft">
             <input type="hidden" name="id" id="recordId" value="{{$vms->id}}">
 
@@ -233,7 +236,7 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
             <section class="section active" id="section1">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="mb-3">Basic Information</h4>
+                        <h4 class="mb-3" style="color: rgb(37, 69, 110);">Basic Information</h4>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Division <span class="text-danger">*</span></label>
@@ -347,7 +350,7 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">Lead Indicators</h4>
+                            <h4 class="mb-0" style="color: green;">Lead Indicators</h4>
                             <span class="badge badge-soft rounded-pill px-3 py-2"><i class="bi bi-info-circle"></i> If
                                 value > 0, attach proof</span>
                         </div>
@@ -362,7 +365,7 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between">
-                            <h4 class="mb-0">Lag Indicators</h4>
+                            <h4 class="mb-0" style="color: red;">Lag Indicators</h4>
                             <span class="badge badge-soft rounded-pill px-3 py-2"><i class="bi bi-info-circle"></i> If
                                 value > 0, attach proof</span>
                         </div>
@@ -436,8 +439,8 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
 
                     <div class="form-check mt-2">
                         <input class="form-check-input" type="checkbox" id="consentCheck">
-                        <label class="form-check-label" for="consentCheck">I confirm the information and attachments are
-                            accurate.</label>
+                        <label class="form-check-label" for="consentCheck">I confirm the above information is correct
+                            and true in nature.</label>
                     </div>
                 </div>
                 <div class="modal-footer flex-column align-items-start">
@@ -452,7 +455,7 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
                             <i class="bi bi-save"></i> Save as Draft
                         </button>
                         <button class="btn btn-success" id="btnFinalSubmit">
-                            <i class="bi bi-check2-circle"></i> Submit Final
+                            <i class="bi bi-check2-circle"></i> Submit
                         </button>
                     </div>
                 </div>
@@ -486,7 +489,7 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
 
         /* ---------- Config ---------- */
         const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-        const ALLOWED_EXT = ["png", "jpg", "jpeg", "gif", "webp", "svg", "pdf", "xls", "xlsx", "csv", "doc", "docx", "ppt", "pptx", "zip", "rar", "7z"];
+        const ALLOWED_EXT = ["pdf"];
 
         const leadNames = [
             "1. Safety Training Session Conducted During The Month",
@@ -506,8 +509,7 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
             "2. No of Medical Treated Case",
             "3. No of LTIs",
             "4. No of Fatality",
-            "5. No of Non Injury Incident",
-            "6. No of Severity 4&5 Violation Reported"
+            "5. No of Non Injury Incident"
         ];
 
         /* ---------- Helpers ---------- */
@@ -558,22 +560,36 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
 
                 const wrap = document.createElement("div");
                 wrap.className = "col-12";
-                wrap.innerHTML = `
+
+                if (type === "lead" && idx === 1) {
+                    wrap.innerHTML = `
+        <div class="p-3 border rounded-4 bg-light mb-3 shadow-sm">
+            <div class="row g-3 align-items-end">
+                <div class="col-sm-12">
+                    <label class="form-label fw-semibold">${label}</label>
+                    <input type="number" min="0" class="form-control val-input"
+                        name="${type}${idx}_val" value="${savedVal}" placeholder="0" data-type="${type}" data-index="${idx}">
+                </div>
+            </div>
+        </div>`;
+                } else {
+                    wrap.innerHTML = `
         <div class="p-3 border rounded-4 bg-light mb-3 shadow-sm">
             <div class="row g-3 align-items-end">
                 <div class="col-sm-3">
                     <label class="form-label fw-semibold">${label}</label>
                     <input type="number" min="0" class="form-control val-input"
-                        name="${type}${idx}_val" value="${savedVal}" placeholder="0">
+                        name="${type}${idx}_val" value="${savedVal}" placeholder="0" data-type="${type}" data-index="${idx}">
                 </div>
                 <div class="col-sm-9">
                     <label class="form-label fw-semibold">Attachment(s)</label>
-                    <input type="file" class="form-control up-input"
+                    <input type="file" class="form-control up-input" accept=".pdf"
                         name="${type}${idx}_doc[]" data-type="${type}" data-index="${idx}" multiple>
                     <ul class="file-list mt-2" id="${type}-list-${idx}"></ul>
                 </div>
             </div>
         </div>`;
+                }
                 container.appendChild(wrap);
 
                 // Render existing files as links + hidden inputs
@@ -654,7 +670,17 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
             const type = input.dataset.type;
             const idx = input.dataset.index;
 
-            Array.from(input.files).forEach(f => files[type][idx].push(f));
+            Array.from(input.files).forEach(f => {
+                if (f.name.split('.').pop().toLowerCase() !== 'pdf') {
+                    alert('Only PDF files are allowed');
+                    return;
+                }
+                if (f.size > MAX_FILE_SIZE) {
+                    alert(`File too large: ${fmtSize(f.size)} (Max 5MB)`);
+                    return;
+                }
+                files[type][idx].push(f);
+            });
 
             input.value = ""; // reset input
             renderFileList(type, idx);
@@ -664,6 +690,13 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
         $(document).ready(() => {
             buildIndicators("leadContainer", "lead", leadNames);
             buildIndicators("lagContainer", "lag", lagNames);
+
+            // Initialize attachment fields visibility
+            setTimeout(() => {
+                $('.val-input').each(function () {
+                    $(this).trigger('input');
+                });
+            }, 100);
         });
     </script>
 
@@ -691,59 +724,35 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
             if (currentStep > 1) { currentStep--; updateStepper(); }
         });
         document.getElementById('btnNext').addEventListener('click', () => {
-            if (validateSection(currentStep)) {
-                if (currentStep < TOTAL_STEPS) { currentStep++; updateStepper(); }
-            }
+            if (currentStep < TOTAL_STEPS) { currentStep++; updateStepper(); }
         });
     </script>
     <script>
-        document.addEventListener('change', (e) => {
-            const input = e.target.closest('.up-input');
-            if (!input) return;
-            const type = input.dataset.type;
-            const idx = Number(input.dataset.index);
-            if (!input.files || input.files.length === 0) return;
 
-            Array.from(input.files).forEach(f => {
-                const ext = f.name.split('.').pop().toLowerCase();
-                if (!ALLOWED_EXT.includes(ext)) { alert(`File type not allowed: ${ext.toUpperCase()}`); return; }
-                if (f.size > MAX_FILE_SIZE) { alert(`File too large: ${fmtSize(f.size)} (Max 5MB)`); return; }
-
-                const exists = files[type][idx].some(x => x.name === f.name && x.size === f.size);
-                if (!exists) { files[type][idx].push(f); }
-            });
-
-            renderFileList(type, idx);
-            input.value = '';
-        });
-
-        function renderFileList(type, idx) {
-            const list = document.getElementById(`${type}-list-${idx}`);
-            list.innerHTML = '';
-            files[type][idx].forEach((f, i) => {
-                const li = document.createElement('li');
-                li.innerHTML = `${f.name} <button type="button" class="btn btn-sm btn-link text-danger" data-remove data-type="${type}" data-idx="${idx}" data-file="${i}">Remove</button>`;
-                list.appendChild(li);
-            });
-        }
     </script>
 
     <script>
 
         /* ---------- Attachment Label Toggle ---------- */
-        document.querySelectorAll('.val-input').forEach(inp => {
-            inp.addEventListener('input', () => { toggleAttachmentRequired(inp.dataset.type, inp.dataset.index); });
-        });
+        $(document).on('input change keyup', '.val-input', function () {
+            const type = $(this).data('type');
+            const idx = $(this).data('index');
+            const val = $(this).val();
 
-        function toggleAttachmentRequired(type, idx) {
-            const valInput = document.querySelector(`.val-input[data-type="${type}"][data-index="${idx}"]`);
-            const attLabel = document.getElementById(`${type}${idx}_attLabel`);
-            if (!valInput || !attLabel) return;
-            const val = Number(valInput.value || 0);
-            const isRequired = !(type === "lead" && idx === 1);
-            if (isRequired && val > 0) { attLabel.innerHTML = 'Attachment <span class="text-danger">*</span>'; }
-            else { attLabel.innerHTML = 'Attachment(s)'; }
-        }
+            if (type === 'lead' && idx == 1) return;
+
+            const $row = $(this).closest('.row');
+            const $attachDiv = $row.find('.col-sm-9');
+            const $inputDiv = $row.find('.col-sm-3');
+
+            if (val == '' || val == '0' || parseFloat(val) <= 0) {
+                $attachDiv.hide();
+                $inputDiv.removeClass('col-sm-3').addClass('col-sm-12');
+            } else {
+                $attachDiv.show();
+                $inputDiv.removeClass('col-sm-12').addClass('col-sm-3');
+            }
+        });
 
         /* ---------- Validation ---------- */
         function validateSection(step) {
@@ -759,21 +768,11 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
             if (step === 2 || step === 3) {
                 const type = (step === 2 ? 'lead' : 'lag');
                 const vals = document.querySelectorAll(`.val-input[data-type="${type}"]`);
-                let ok = true;
                 vals.forEach(v => {
-                    const idx = Number(v.dataset.index);
-                    const num = Number(v.value || 0);
-                    const hasFiles = (files[type][idx] && files[type][idx].length > 0);
-                    const list = document.getElementById(`${type}-list-${idx}`);
-                    const isRequired = !(type === 'lead' && idx === 1);
-                    if (isRequired && num > 0 && !hasFiles) { list.classList.add('is-invalid'); ok = false; }
-                    else { list.classList.remove('is-invalid'); }
+                    const list = document.getElementById(`${type}-list-${v.dataset.index}`);
+                    if (list) list.classList.remove('is-invalid');
                 });
-                if (!ok) {
-                    const firstBad = document.querySelector(`#section${step} .is-invalid`); if (firstBad)
-                        firstBad.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                return ok;
+                return true;
             }
             return true;
         }
@@ -789,13 +788,19 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
             inputs.forEach(input => {
                 const idx = Number(input.dataset.index);
                 const val = input.value.trim();
-                const label = input.dataset.label || `${type} ${idx}`;
-                const fileList = files[type][idx] || [];
-                if (val !== "" || fileList.length > 0) {
+                const label = (type === 'lead' ? leadNames[idx - 1] : lagNames[idx - 1]) || `${type} ${idx}`;
+                const newFiles = files[type][idx] || [];
+                const list = document.getElementById(`${type}-list-${idx}`);
+                const existingFiles = list ? Array.from(list.querySelectorAll('[data-remove-existing]')).map(btn => {
+                    const link = btn.parentElement.querySelector('a');
+                    return link ? link.textContent : 'Document';
+                }) : [];
+                const allFiles = [...existingFiles, ...newFiles.map(f => f.name)];
+
+                if (val !== "" || allFiles.length > 0) {
                     const div = document.createElement("div");
                     div.className = "mb-2 p-2 border rounded bg-light";
-                    div.innerHTML = `<strong>${label}</strong><br>${val !== "" ? `Value: <span class="text-primary">${val}</span><br>` :
-                        ""}${fileList.length > 0 ? `Attachments:<ul>${fileList.map(f => `<li>${f.name}</li>`).join("")}</ul>` : ""}`;
+                    div.innerHTML = `<strong>${label}</strong><br>${val !== "" ? `Value: <span class="text-primary">${val}</span><br>` : ""}${allFiles.length > 0 && !(type === 'lead' && idx === 1) ? `Attachments:<ul>${allFiles.map(f => `<li>${f}</li>`).join("")}</ul>` : ""}`;
                     container.appendChild(div);
                 }
             });
@@ -908,21 +913,12 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
             if (!getVal('department')) missing.push("Department");
             if (!getVal('report_month')) missing.push("Month");
 
-            ["lead", "lag"].forEach(type => {
-                const inputs = document.querySelectorAll(`.val-input[data-type="${type}"]`);
-                inputs.forEach(input => {
-                    const idx = Number(input.dataset.index);
-                    const val = input.value.trim();
-                    const label = input.dataset.label || `${type} ${idx}`;
-                    const hasFiles = (files[type][idx] && files[type][idx].length > 0);
-                    const isRequired = !(type === "lead" && idx === 1);
-                    if (isRequired && Number(val) > 0 && !hasFiles) { missing.push(`${label} (attachment)`); }
-                });
-            });
-
-            document.getElementById('pv_division').innerText = getVal('division') || "-";
-            document.getElementById('pv_plant').innerText = getVal('plant') || "-";
-            document.getElementById('pv_department').innerText = getVal('department') || "-";
+            const divisionEl = document.getElementById('division');
+            const plantEl = document.getElementById('plant');
+            const departmentEl = document.getElementById('department');
+            document.getElementById('pv_division').innerText = divisionEl.options[divisionEl.selectedIndex]?.text || "-";
+            document.getElementById('pv_plant').innerText = plantEl.options[plantEl.selectedIndex]?.text || "-";
+            document.getElementById('pv_department').innerText = departmentEl.options[departmentEl.selectedIndex]?.text || "-";
             document.getElementById('pv_month').innerText = getVal('report_month') || "-";
             generatePreviewList("lead", "pvLeadList");
             generatePreviewList("lag", "pvLagList");
@@ -954,24 +950,10 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
 
             let missing = [];
 
-            // Check main fields
+            // Check main fields only
             ['division', 'plant', 'department', 'report_month'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el || !el.value) missing.push(id.charAt(0).toUpperCase() + id.slice(1));
-            });
-
-            // Check lead and lag inputs & attachments
-            ['lead', 'lag'].forEach(type => {
-                const inputs = document.querySelectorAll(`.val-input[data-type="${type}"]`);
-                inputs.forEach(input => {
-                    const idx = Number(input.dataset.index);
-                    const val = Number(input.value || 0);
-                    const hasFiles = (files[type][idx] && files[type][idx].length > 0);
-                    const isRequired = !(type === "lead" && idx === 1);
-                    if (isRequired && val > 0 && !hasFiles) {
-                        missing.push(`${input.dataset.label} (Attachment required)`);
-                    }
-                });
             });
 
             if (missing.length > 0) {
