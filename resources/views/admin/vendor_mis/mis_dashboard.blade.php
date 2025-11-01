@@ -46,7 +46,7 @@
         <!-- Page Header -->
         <div class="mb-4">
             <h3 class="fw-bold">Safety Performance System Dashboard</h3>
-            <small class="text-muted">Lead & Lag Indicators</small>
+            <small class="text-muted">Lead & Lag Indicators </small>
         </div>
 
         <!-- Tabs -->
@@ -482,18 +482,18 @@
             ];
 
             let tableHtml = `
-                                                                                                                                                    <div class="table-responsive">
-                                                                                                                                                        <table class="table table-bordered table-striped">
-                                                                                                                                                            <thead class="table-dark">
-                                                                                                                                                                <tr>
-                                                                                                                                                                    <th>Indicator</th>
-                                                                                                                                                                    <th>Vendor 1</th>
-                                                                                                                                                                    <th>Vendor 2</th>
-                                                                                                                                                                    <th>Difference</th>
-                                                                                                                                                                </tr>
-                                                                                                                                                            </thead>
-                                                                                                                                                            <tbody>
-                                                                                                                                                                <tr class="table-success"><td colspan="4"><strong>Lead Indicators</strong></td></tr>`;
+                                                                                                                                                            <div class="table-responsive">
+                                                                                                                                                                <table class="table table-bordered table-striped">
+                                                                                                                                                                    <thead class="table-dark">
+                                                                                                                                                                        <tr>
+                                                                                                                                                                            <th>Indicator</th>
+                                                                                                                                                                            <th>Vendor 1</th>
+                                                                                                                                                                            <th>Vendor 2</th>
+                                                                                                                                                                            <th>Difference</th>
+                                                                                                                                                                        </tr>
+                                                                                                                                                                    </thead>
+                                                                                                                                                                    <tbody>
+                                                                                                                                                                        <tr class="table-success"><td colspan="4"><strong>Lead Indicators</strong></td></tr>`;
 
             leadIndicators.forEach((indicator, index) => {
                 const key = `lead${index + 1}_val`;
@@ -503,12 +503,12 @@
                 const diffClass = diff > 0 ? 'text-success' : diff < 0 ? 'text-danger' : 'text-muted';
 
                 tableHtml += `
-                                                                                                                                                        <tr>
-                                                                                                                                                            <td>${indicator}</td>
-                                                                                                                                                            <td><span class="badge bg-primary">${v1Val}</span></td>
-                                                                                                                                                            <td><span class="badge bg-info">${v2Val}</span></td>
-                                                                                                                                                            <td><span class="${diffClass}">${diff > 0 ? '+' : ''}${diff}</span></td>
-                                                                                                                                                        </tr>`;
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <td>${indicator}</td>
+                                                                                                                                                                    <td><span class="badge bg-primary">${v1Val}</span></td>
+                                                                                                                                                                    <td><span class="badge bg-info">${v2Val}</span></td>
+                                                                                                                                                                    <td><span class="${diffClass}">${diff > 0 ? '+' : ''}${diff}</span></td>
+                                                                                                                                                                </tr>`;
             });
 
             tableHtml += '<tr class="table-warning"><td colspan="4"><strong>Lag Indicators</strong></td></tr>';
@@ -521,12 +521,12 @@
                 const diffClass = diff > 0 ? 'text-danger' : diff < 0 ? 'text-success' : 'text-muted';
 
                 tableHtml += `
-                                                                                                                                                        <tr>
-                                                                                                                                                            <td>${indicator}</td>
-                                                                                                                                                            <td><span class="badge bg-primary">${v1Val}</span></td>
-                                                                                                                                                            <td><span class="badge bg-info">${v2Val}</span></td>
-                                                                                                                                                            <td><span class="${diffClass}">${diff > 0 ? '+' : ''}${diff}</span></td>
-                                                                                                                                                        </tr>`;
+                                                                                                                                                                <tr>
+                                                                                                                                                                    <td>${indicator}</td>
+                                                                                                                                                                    <td><span class="badge bg-primary">${v1Val}</span></td>
+                                                                                                                                                                    <td><span class="badge bg-info">${v2Val}</span></td>
+                                                                                                                                                                    <td><span class="${diffClass}">${diff > 0 ? '+' : ''}${diff}</span></td>
+                                                                                                                                                                </tr>`;
             });
 
             tableHtml += '</tbody></table></div>';
