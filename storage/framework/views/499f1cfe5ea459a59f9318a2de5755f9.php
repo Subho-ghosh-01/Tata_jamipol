@@ -285,7 +285,7 @@
 
 
             $("#department").html('<option value="">--Select--</option>');
-            $('#vid').html('<option>--Select--</option>');
+            $('#vid').html('<option value="">--Select--</option>');
 
             $.ajaxSetup({
                 headers: {

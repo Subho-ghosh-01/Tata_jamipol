@@ -347,7 +347,7 @@ class Vendor_misController extends Controller
             $query->where('department_id', $request->department);
         }
 
-        $query->where('status', 'approve');
+
 
         // Draft filter
 
@@ -1055,11 +1055,28 @@ class Vendor_misController extends Controller
     {
 
 
-        $divisions = Division::
-            where('div_id', $id)
-            ->select('id', 'name')
-            ->get();
+        if (Session::get('user_sub_typeSession') == 3 || Session::get('accoss_location') == 1) {
 
+            $divisions = Division::
+                where('div_id', $id)
+                ->select('id', 'name')
+                ->get();
+        } else if (Session::get('plant_wise') == 1) {
+            $divisions = Division::
+                where('div_id', $id)
+                ->select('id', 'name')
+                ->get();
+        } else if (Session::get('division_wise') == 1) {
+            $divisions = Division::join('userlogins', 'userlogins.division_id', '=', 'divisions.id')
+                ->where('divisions.div_id', $id)
+                ->select('divisions.id', 'divisions.name')
+                ->get();
+        } else if (Session::get('user_typeSession') == 2) {
+            $divisions = Division::join('userlogins', 'userlogins.division_id', '=', 'divisions.id')
+                ->where('divisions.div_id', $id)
+                ->select('divisions.id', 'divisions.name')
+                ->get();
+        }
         return $divisions;
     }
     public function getPlant($id)

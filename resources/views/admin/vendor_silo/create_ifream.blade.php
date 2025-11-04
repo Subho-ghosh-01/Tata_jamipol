@@ -39,6 +39,24 @@ use App\UserLogin;
             max-width: 1050px;
         }
     }
+
+    #safetyWarningModal .modal-content {
+        animation: pulse-border 1.5s infinite;
+    }
+
+    @keyframes pulse-border {
+        0% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5);
+        }
+
+        70% {
+            box-shadow: 0 0 15px 10px rgba(220, 53, 69, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
 </style>
 
 
@@ -258,7 +276,7 @@ use App\UserLogin;
                             </div>
                             <div class="step" id="step4-indicator">
                                 <div class="step-number">4</div>
-                                <div class="step-label">Valid Certificate</div>
+                                <div class="step-label">Valid Certification </div>
                             </div>
                         </div>
 
@@ -361,18 +379,20 @@ use App\UserLogin;
                                     <label class="form-label">Vehicle Registration No <span
                                             class="text-danger">*</span></label>
                                     <input type="text" class="form-control" name="vehicle_reg_no"
-                                        placeholder="Enter Vehicle Registration No" required>
+                                        placeholder="Enter Vehicle Registration No" minlength="11" maxlength="11"
+                                        required>
                                     <div class="invalid-feedback">Required field</div>
+
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Registration Proof <span
+                                    <label class="form-label">Registration Proof (RC Proof)<span
                                             class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="regUpload">
                                         <input type="file" class="d-none" name="vehicle_reg_file" required>
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
-                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 5MB, PDF)</p>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -388,6 +408,8 @@ use App\UserLogin;
                                                 class="text-danger">*</span></label>
                                         <input type="date" class="form-control" name="insurance_to" required>
                                         <div class="invalid-feedback">Required field</div>
+                                        <div class="invalid-feedback" id="insurance_to_date_error"
+                                            style="display:none;">Due date cannot be today or past date</div>
                                     </div>
                                 </div>
                                 <div class="mb-2">
@@ -398,16 +420,25 @@ use App\UserLogin;
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
-                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 5MB, PDF)</p>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-12 mb-3">
+                                    <div class="col-md-6 mb-3 ">
                                         <label class="form-label">Valid Fitness Inspection Date <span
                                                 class="text-danger">*</span></label>
                                         <input type="date" class="form-control" name="fitness_date" required>
                                         <div class="invalid-feedback">Required field</div>
+
+
+                                    </div>
+                                    <div class="col-md-6 mb-3 "> <label class="form-label">Valid Fitness Inspection Due
+                                            Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="fitness_due_date" required>
+                                        <div class="invalid-feedback">Required field</div>
+                                        <div class="invalid-feedback" id="fitness_due_date_error" style="display:none;">
+                                            Due date cannot be today or past date</div>
                                     </div>
 
                                 </div>
@@ -419,7 +450,7 @@ use App\UserLogin;
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
-                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 5MB, PDF)</p>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -436,6 +467,8 @@ use App\UserLogin;
                                                 class="text-danger">*</span></label>
                                         <input type="date" class="form-control" name="puc_due_date" required>
                                         <div class="invalid-feedback">Required field</div>
+                                        <div class="invalid-feedback" id="puc_due_date_error" style="display:none;">Due
+                                            date cannot be today or past date</div>
                                     </div>
 
                                 </div>
@@ -446,7 +479,7 @@ use App\UserLogin;
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
-                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 5MB, PDF)</p>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -462,6 +495,8 @@ use App\UserLogin;
                                         <input type="date" class="form-control" name="valid_road_permit_due_date"
                                             required>
                                         <div class="invalid-feedback">Required field</div>
+                                        <div class="invalid-feedback" id="road_permit_due_date_error"
+                                            style="display:none;">Due date cannot be today or past date</div>
                                     </div>
 
                                 </div>
@@ -473,7 +508,7 @@ use App\UserLogin;
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
-                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 5MB, PDF)</p>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -611,7 +646,7 @@ use App\UserLogin;
                             </div>
                             <!-- Step 4: Certifications -->
                             <div class="form-step" id="step4">
-                                <h5>Valid Certificate :
+                                <h5>Valid Certification :
 
                                 </h5><br>
                                 <div class="row">
@@ -628,6 +663,8 @@ use App\UserLogin;
                                         <input type="date" class="form-control" name="pressure_vessel_due_date"
                                             required>
                                         <div class="invalid-feedback">Required field</div>
+                                        <div class="invalid-feedback" id="pressure_vessel_due_date_error"
+                                            style="display:none;">Please select a future date</div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -638,7 +675,7 @@ use App\UserLogin;
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
-                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 5MB, PDF)</p>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -654,6 +691,8 @@ use App\UserLogin;
                                                 class="text-danger">*</span></label>
                                         <input type="date" class="form-control" name="pressure_gauge_due_date" required>
                                         <div class="invalid-feedback">Required field</div>
+                                        <div class="invalid-feedback" id="pressure_gauge_due_date_error"
+                                            style="display:none;">Please select a future date</div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -664,7 +703,7 @@ use App\UserLogin;
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
-                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 5MB, PDF)</p>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -683,6 +722,8 @@ use App\UserLogin;
                                         <input type="date" class="form-control" name="pressure_relief_due_date"
                                             required>
                                         <div class="invalid-feedback">Required field</div>
+                                        <div class="invalid-feedback" id="pressure_relief_due_date_error"
+                                            style="display:none;">Please select a future date</div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -693,7 +734,7 @@ use App\UserLogin;
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
-                                        <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
+                                        <p class="mt-2 mb-0 small text-muted">(Max 5MB, PDF)</p>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -727,7 +768,49 @@ use App\UserLogin;
                 </div>
             </div>
         </div>
+    </div><!-- Safety Warning Modal -->
+    <div class="modal fade" id="safetyWarningModal" tabindex="-1" aria-labelledby="safetyWarningLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger shadow-lg">
+
+                <!-- Header -->
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="safetyWarningLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Warning
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body">
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <i class="fas fa-ban fa-lg me-3"></i>
+                        <div>
+                            <strong>Application Rejected by Safety Department</strong><br>
+                            One or more safety checks failed validation.
+                        </div>
+                    </div>
+
+                    <p class="mb-2">The following safety parameter(s) cannot be marked as <strong>"No"</strong>:</p>
+                    <ul id="safetyIssues" class="list-group list-group-flush mb-3"></ul>
+
+                    <div class="text-center text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        All safety requirements must be <strong>"Yes"</strong> to proceed with the application.
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-outline-danger px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
+
     <div id="pageLoader"
         class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50"
         style="z-index: 2000;">
@@ -798,6 +881,10 @@ use App\UserLogin;
 
                                 <div class="col-md-6"><strong>Fitness Date:</strong> <span id="pv_fitness_date"></span>
                                 </div>
+
+                                <div class="col-md-6"><strong>Fitness Due Date:</strong> <span
+                                        id="pv_fitness_due_date"></span>
+                                </div>
                                 <div class="col-md-6"><strong>Fitness Certificate:</strong> <span
                                         id="pv_fitness_file"></span></div>
                                 <div class="col-md-6"><strong>PUC Inspection Date:</strong> <span
@@ -809,7 +896,7 @@ use App\UserLogin;
                                 </div>
 
                                 <div class="col-md-6"><strong>Road Permit From:</strong>
-                                    <sp a n id="pv_valid_road_permit_date"></span>
+                                    <span id="pv_valid_road_permit_date"></span>
                                 </div>
 
                                 <div class="col-md-6"><strong>Road Permit Due Date:</strong> <span
@@ -834,7 +921,7 @@ use App\UserLogin;
                                         id="pv_gps_tracker_available"></span></div>
 
                                 <div class="col-md-6"><strong>Hatch Strainers:</strong>
-                                    <sp a n id="pv_hatch_strainers"></span>
+                                    <span id="pv_hatch_strainers"></span>
                                 </div>
 
                                 <div class="col-md-6"><strong>Fuel Tank Strainer:</strong> <span
@@ -897,7 +984,7 @@ use App\UserLogin;
                             <i class="bi bi-save"></i> Save as Draft
                         </button>
                         <button class="btn btn-success" id="btnFinalSubmit" disabled>
-                            <i class="bi bi-check2-circle"></i> Submit Final
+                            <i class="bi bi-check2-circle"></i> Submit
                         </button>
                     </div>
                 </div>
@@ -922,6 +1009,12 @@ use App\UserLogin;
                 // Show current step
                 $(`#step${step}`).addClass('active');
 
+                // Show safety warning when entering step 3
+                if (step === 3) {
+                    $('#safetyIssues').html('<li>All safety parameters must be "Yes" to proceed</li>');
+                    new bootstrap.Modal(document.getElementById('safetyWarningModal')).show();
+                }
+
                 // Update step indicators
                 $('.step').removeClass('active completed');
                 for (let i = 1; i <= step; i++) {
@@ -940,10 +1033,11 @@ use App\UserLogin;
 
             // Next button click handler
             $(document).on('click', '.next-step', function () {
-                if (validateStep(currentStep)) {
+                if (currentStep === 3) {
+                    validateSafetyStep();
+                } else if (validateStep(currentStep)) {
                     currentStep++;
                     showStep(currentStep);
-                    // Scroll to top of form
                     $('html, body').animate({
                         scrollTop: $('.card-body').offset().top - 20
                     }, 300);
@@ -1019,6 +1113,71 @@ use App\UserLogin;
                     $('#otherStateFields [required]').prop('required', false);
                 }
             });
+
+            // Immediate safety validation on dropdown change
+            $(document).on('change', 'select[name="hatch_strainers"], select[name="fuel_tank_stainers"], select[name="battery_placement"], select[name="fire_extinguisher"], select[name="first_aid_box"], select[name="stepney"], select[name="scotch_block"], select[name="earth_block"], select[name="dfms_available"], select[name="gps_tracker_available"]', function () {
+                if ($(this).val() === 'No') {
+                    const fieldLabel = $(this).closest('.mb-3').find('label').text().replace('*', '').trim();
+                    $('#safetyIssues').html(`<li>${fieldLabel}</li>`);
+                    new bootstrap.Modal(document.getElementById('safetyWarningModal')).show();
+                    $(this).val(''); // Reset to empty
+                }
+            });
+
+            // Safety validation function
+            window.validateSafetyStep = function () {
+                const safetyFields = [
+                    { name: 'hatch_strainers', label: 'Hatch Strainers' },
+                    { name: 'fuel_tank_stainers', label: 'Fuel Tank Strainer' },
+                    { name: 'battery_placement', label: 'Battery Placement' },
+                    { name: 'fire_extinguisher', label: 'Fire Extinguisher' },
+                    { name: 'first_aid_box', label: 'First Aid Box' },
+                    { name: 'stepney', label: 'Stepney (Spare Tyre)' },
+                    { name: 'scotch_block', label: 'Scotch Blocks' },
+                    { name: 'earth_block', label: 'Earth Chain' }
+                ];
+
+                const deputedFor = $('#deputedFor').val();
+                if (deputedFor === 'To Other States') {
+                    safetyFields.push(
+                        { name: 'dfms_available', label: 'DFMS Available' },
+                        { name: 'gps_tracker_available', label: 'GPS Tracker Available' }
+                    );
+                }
+
+                const issues = [];
+                safetyFields.forEach(field => {
+                    const element = $(`[name="${field.name}"]`);
+                    if (element.length && element.val() === 'No') {
+                        issues.push(field.label);
+                    }
+                });
+
+                if (issues.length > 0) {
+                    const issuesList = $('#safetyIssues');
+                    issuesList.html(issues.map(issue => `<li>${issue}</li>`).join(''));
+                    new bootstrap.Modal(document.getElementById('safetyWarningModal')).show();
+                    return false;
+                }
+
+                if (validateStep(currentStep)) {
+                    currentStep++;
+                    showStep(currentStep);
+                    $('html, body').animate({
+                        scrollTop: $('.card-body').offset().top - 20
+                    }, 300);
+                }
+            };
+
+            window.previousStep = function () {
+                if (currentStep > 1) {
+                    currentStep--;
+                    showStep(currentStep);
+                    $('html, body').animate({
+                        scrollTop: $('.card-body').offset().top - 20
+                    }, 300);
+                }
+            };
 
             // File upload click handlers
             $('.file-upload-container').each(function () {
@@ -1251,7 +1410,7 @@ use App\UserLogin;
                     if (this.files && this.files[0]) {
                         const file = this.files[0];
                         const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                        const maxSize = 2 * 1024 * 1024; // 2MB
+                        const maxSize = 5 * 1024 * 1024; // 5MB
 
                         container.removeClass('has-error has-file');
                         fileInfo.removeClass('success error').hide();
@@ -1262,7 +1421,7 @@ use App\UserLogin;
                         }
 
                         if (file.size > maxSize) {
-                            showError('File size must be less than 2MB.');
+                            showError('File size must be less than 5MB.');
                             return;
                         }
 
@@ -1317,6 +1476,21 @@ use App\UserLogin;
                         fileInput.trigger('change');
                     }
                 });
+            });
+
+            // Due date validation
+            $('input[name="insurance_to"], input[name="fitness_due_date"], input[name="puc_due_date"], input[name="valid_road_permit_due_date"], input[name="pressure_vessel_due_date"], input[name="pressure_gauge_due_date"], input[name="pressure_relief_due_date"]').on('change', function () {
+                const today = new Date().toISOString().split('T')[0];
+                const selectedDate = $(this).val();
+                const fieldName = $(this).attr('name');
+
+                if (selectedDate <= today) {
+                    $(this).addClass('is-invalid');
+                    $(`#${fieldName}_error`).show();
+                } else {
+                    $(this).removeClass('is-invalid');
+                    $(`#${fieldName}_error`).hide();
+                }
             });
         });
     </script>
@@ -1545,6 +1719,7 @@ use App\UserLogin;
             setValue("pv_insurance_to", getVal("insurance_to"));
             setValue("pv_insurance_file", getVal("insurance_file"));
             setValue("pv_fitness_date", getVal("fitness_date"));
+            setValue("pv_fitness_due_date", getVal("fitness_due_date"))
             setValue("pv_fitness_file", getVal("fitness_file"));
             setValue("pv_puc_inspection_date", getVal("puc_inspection_date"));
             setValue("pv_puc_due_date", getVal("puc_due_date"));

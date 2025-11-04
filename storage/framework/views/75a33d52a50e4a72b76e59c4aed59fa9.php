@@ -265,11 +265,29 @@ $vms_flow = DB::table('vendor_mis_flow')->where('vendor_mis');
                                     <option value="">Select Department</option>
                                 </select>
                             </div>
+                            <?php
+                                $today = date('d');
+                                $currentMonth = date('Y-m');
+                                $previousMonth = date('Y-m', strtotime('-1 month'));
+
+                                // If today is 1st or 2nd → previous month is allowed
+                                if ($today <= 2) {
+                                    $allowedMonth = $previousMonth;
+                                } else {
+                                    $allowedMonth = $currentMonth;
+                                }
+
+                                // Use DB value if present, otherwise default allowed month
+                                $selectedMonth = $vms->month ?? $allowedMonth;
+                            ?>
+
                             <div class="col-md-6">
                                 <label class="form-label">Reporting Month <span class="text-danger">*</span></label>
                                 <input type="month" class="form-control" name="report_month" id="report_month"
-                                    value="<?php echo e($vms->month); ?>" required>
+                                    value="<?php echo e($selectedMonth); ?>" min="<?php echo e($allowedMonth); ?>" max="<?php echo e($allowedMonth); ?>"
+                                    required>
                             </div>
+
                         </div>
                         <p class="hint mt-3"><i class="bi bi-lightbulb"></i> You can move back anytime; your inputs
                             remain saved.</p>

@@ -46,7 +46,7 @@
         <!-- Page Header -->
         <div class="mb-4">
             <h3 class="fw-bold">Safety Performance System Dashboard</h3>
-            <small class="text-muted">Lead & Lag Indicators</small>
+            <small class="text-muted">Lead & Lag Indicators </small>
         </div>
 
         <!-- Tabs -->
@@ -68,7 +68,9 @@
                 <form id="filterForm">
                     <?php echo csrf_field(); ?>
                     <div class="row g-3">
-                        <?php if(Session::get('user_sub_typeSession') == '3'): ?>
+
+                        
+                        <?php if(Session::get('accoss_location') == 1): ?>
                             <div class="col-md-4">
                                 <label class="form-label">Division</label>
                                 <select class="form-control" name="division" id="division">
@@ -90,7 +92,37 @@
                                     <option value="">Select Department</option>
                                 </select>
                             </div>
+
+                            
+                        <?php elseif(Session::get('division_wise') == 1): ?>
+                            <div class="col-md-4">
+                                <label class="form-label">Plant</label>
+                                <select class="form-control" name="plant" id="plant">
+                                    <option value="">Select Plant</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Department</label>
+                                <select class="form-control" name="department" id="department">
+                                    <option value="">Select Department</option>
+                                </select>
+                            </div>
+
+                            
+                        <?php elseif(Session::get('plant_wise') == 1): ?>
+                            <div class="col-md-4">
+                                <label class="form-label">Department</label>
+                                <select class="form-control" name="department" id="department">
+                                    <option value="">Select Department</option>
+                                </select>
+                            </div>
+
+                            
+                        <?php elseif(Session::get('vendor_safety_mis') == 1): ?>
+                            
                         <?php endif; ?>
+
+                        
                         <div class="col-md-4">
                             <label class="form-label">From Month</label>
                             <input type="month" name="from_date" class="form-control">
@@ -100,16 +132,21 @@
                             <input type="month" name="to_date" class="form-control">
                         </div>
 
+                        
+
                         <div class="col-md-4">
                             <label class="form-label">Vendor</label>
                             <select name="vendor" id="vendorFilterMain" class="form-control">
                                 <option value="">All Vendors</option>
                             </select>
                         </div>
+
+
                         <div class="col-md-4 mt-4">
                             <button type="button" id="applyFilter" class="btn btn-primary w-100">Apply Filter</button>
                         </div>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -138,7 +175,22 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card shadow-sm">
-                    <div class="card-header bg-success text-white">Lead Indicators</div>
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <span>Lead Indicators</span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-light btn-sm" onclick="downloadChart('leadChart', 'excel')"
+                                title="Download Excel">
+                                <i class="fas fa-file-excel"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm" onclick="downloadChart('leadChart', 'pdf')"
+                                title="Download PDF">
+                                <i class="fas fa-file-pdf"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm" onclick="printChart('leadChart')" title="Print">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="card-body">
                         <div id="leadChart" style="height:350px;"></div>
                     </div>
@@ -147,7 +199,22 @@
 
             <div class="col-md-12">
                 <div class="card shadow-sm">
-                    <div class="card-header bg-danger text-white">Lag Indicators</div>
+                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <span>Lag Indicators</span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-light btn-sm" onclick="downloadChart('lagChart', 'excel')"
+                                title="Download Excel">
+                                <i class="fas fa-file-excel"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm" onclick="downloadChart('lagChart', 'pdf')"
+                                title="Download PDF">
+                                <i class="fas fa-file-pdf"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm" onclick="printChart('lagChart')" title="Print">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div class="card-body">
                         <div id="lagChart" style="height:350px;"></div>
                     </div>
@@ -159,35 +226,66 @@
 
 
 
-
-        <!-- Vendor Comparison Charts -->
-        <div class="card mt-4 shadow-sm">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <span>Vendor Lead & Lag Comparison Charts</span>
-                <div>
-                    <select id="chartVendor1" class="form-select form-select-sm me-2"
-                        style="width:180px; display:inline-block;">
-                        <option value="">Select Vendor 1</option>
-                    </select>
-                    <select id="chartVendor2" class="form-select form-select-sm" style="width:180px; display:inline-block;">
-                        <option value="">Select Vendor 2</option>
-                    </select>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-success mb-3">Lead Indicators Comparison</h6>
-                        <div id="vendorLeadChart" style="height:350px;"></div>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-danger mb-3">Lag Indicators Comparison</h6>
-                        <div id="vendorLagChart" style="height:350px;"></div>
+        <?php if(Session::get('user_typeSession') != 2): ?>
+            <!-- Vendor Comparison Charts -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <span>Vendor Lead & Lag Comparison Charts</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <select id="chartVendor1" class="form-select form-select-sm" style="width:150px;">
+                            <option value="">Select Vendor 1</option>
+                        </select>
+                        <select id="chartVendor2" class="form-select form-select-sm" style="width:150px;">
+                            <option value="">Select Vendor 2</option>
+                        </select>
                     </div>
                 </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-success mb-0">Lead Indicators Comparison</h6>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-success btn-sm"
+                                        onclick="downloadChart('vendorLeadChart', 'excel')" title="Download Excel">
+                                        <i class="fas fa-file-excel"></i>
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm"
+                                        onclick="downloadChart('vendorLeadChart', 'pdf')" title="Download PDF">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm" onclick="printChart('vendorLeadChart')"
+                                        title="Print">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="vendorLeadChart" style="height:350px;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-danger mb-0">Lag Indicators Comparison</h6>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-danger btn-sm"
+                                        onclick="downloadChart('vendorLagChart', 'excel')" title="Download Excel">
+                                        <i class="fas fa-file-excel"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm"
+                                        onclick="downloadChart('vendorLagChart', 'pdf')" title="Download PDF">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="printChart('vendorLagChart')"
+                                        title="Print">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="vendorLagChart" style="height:350px;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-
+        <?php endif; ?>
         <!-- Comparison Chart -->
 
     </div>
@@ -195,9 +293,12 @@
 
 <?php $__env->startSection('scripts'); ?>
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
     <script>
-        const leadColors = ['#28a745', '#20c997', '#17a2b8', '#007bff', '#6610f2', '#6f42c1', '#e83e8c', '#dc3545', '#fd7e14', '#ffc107'];
-        const lagColors = ['#ffc107', '#fd7e14', '#dc3545', '#e83e8c', '#6f42c1', '#6610f2'];
+        const leadColors = ['#28a745', '#28a745', '#28a745', '#28a745', '#28a745', '#28a745', '#28a745', '#28a745', '#28a745', '#28a745'];
+        const lagColors = ['#dc3545', '#dc3545', '#dc3545', '#dc3545', '#dc3545', '#dc3545'];
 
         function loadVendors() {
             $.get("<?php echo e(route('admin.vendorGet_vendor_mis', 1)); ?>", function (vendors) {
@@ -243,7 +344,7 @@
 
             Highcharts.chart('leadChart', {
                 chart: { type: 'column' },
-                title: { text: null },
+                title: { text: 'Lead Indicators' },
                 xAxis: {
                     categories: leadIndicatorNames,
                     labels: { rotation: -45, style: { fontSize: '10px' } }
@@ -251,6 +352,14 @@
                 yAxis: { min: 0, title: { text: 'Count' } },
                 legend: { enabled: false },
                 plotOptions: { column: { dataLabels: { enabled: true } } },
+                exporting: {
+                    enabled: true,
+                    buttons: {
+                        contextButton: {
+                            enabled: false
+                        }
+                    }
+                },
                 series: [{ name: 'Lead Indicators', data: leadData }]
             });
 
@@ -270,7 +379,7 @@
 
             Highcharts.chart('lagChart', {
                 chart: { type: 'column' },
-                title: { text: null },
+                title: { text: 'Lag Indicators' },
                 xAxis: {
                     categories: lagIndicatorNames,
                     labels: { rotation: -45, style: { fontSize: '10px' } }
@@ -278,6 +387,14 @@
                 yAxis: { min: 0, title: { text: 'Count' } },
                 legend: { enabled: false },
                 plotOptions: { column: { dataLabels: { enabled: true } } },
+                exporting: {
+                    enabled: true,
+                    buttons: {
+                        contextButton: {
+                            enabled: false
+                        }
+                    }
+                },
                 series: [{ name: 'Lag Indicators', data: lagData }]
             });
 
@@ -482,18 +599,18 @@
             ];
 
             let tableHtml = `
-                                                                                                                                                    <div class="table-responsive">
-                                                                                                                                                        <table class="table table-bordered table-striped">
-                                                                                                                                                            <thead class="table-dark">
-                                                                                                                                                                <tr>
-                                                                                                                                                                    <th>Indicator</th>
-                                                                                                                                                                    <th>Vendor 1</th>
-                                                                                                                                                                    <th>Vendor 2</th>
-                                                                                                                                                                    <th>Difference</th>
-                                                                                                                                                                </tr>
-                                                                                                                                                            </thead>
-                                                                                                                                                            <tbody>
-                                                                                                                                                                <tr class="table-success"><td colspan="4"><strong>Lead Indicators</strong></td></tr>`;
+                                                                                                                                                                                                                        <div class="table-responsive">
+                                                                                                                                                                                                                            <table class="table table-bordered table-striped">
+                                                                                                                                                                                                                                <thead class="table-dark">
+                                                                                                                                                                                                                                    <tr>
+                                                                                                                                                                                                                                        <th>Indicator</th>
+                                                                                                                                                                                                                                        <th>Vendor 1</th>
+                                                                                                                                                                                                                                        <th>Vendor 2</th>
+                                                                                                                                                                                                                                        <th>Difference</th>
+                                                                                                                                                                                                                                    </tr>
+                                                                                                                                                                                                                                </thead>
+                                                                                                                                                                                                                                <tbody>
+                                                                                                                                                                                                                                    <tr class="table-success"><td colspan="4"><strong>Lead Indicators</strong></td></tr>`;
 
             leadIndicators.forEach((indicator, index) => {
                 const key = `lead${index + 1}_val`;
@@ -503,12 +620,12 @@
                 const diffClass = diff > 0 ? 'text-success' : diff < 0 ? 'text-danger' : 'text-muted';
 
                 tableHtml += `
-                                                                                                                                                        <tr>
-                                                                                                                                                            <td>${indicator}</td>
-                                                                                                                                                            <td><span class="badge bg-primary">${v1Val}</span></td>
-                                                                                                                                                            <td><span class="badge bg-info">${v2Val}</span></td>
-                                                                                                                                                            <td><span class="${diffClass}">${diff > 0 ? '+' : ''}${diff}</span></td>
-                                                                                                                                                        </tr>`;
+                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                <td>${indicator}</td>
+                                                                                                                                                                                                                                <td><span class="badge bg-primary">${v1Val}</span></td>
+                                                                                                                                                                                                                                <td><span class="badge bg-info">${v2Val}</span></td>
+                                                                                                                                                                                                                                <td><span class="${diffClass}">${diff > 0 ? '+' : ''}${diff}</span></td>
+                                                                                                                                                                                                                            </tr>`;
             });
 
             tableHtml += '<tr class="table-warning"><td colspan="4"><strong>Lag Indicators</strong></td></tr>';
@@ -521,12 +638,12 @@
                 const diffClass = diff > 0 ? 'text-danger' : diff < 0 ? 'text-success' : 'text-muted';
 
                 tableHtml += `
-                                                                                                                                                        <tr>
-                                                                                                                                                            <td>${indicator}</td>
-                                                                                                                                                            <td><span class="badge bg-primary">${v1Val}</span></td>
-                                                                                                                                                            <td><span class="badge bg-info">${v2Val}</span></td>
-                                                                                                                                                            <td><span class="${diffClass}">${diff > 0 ? '+' : ''}${diff}</span></td>
-                                                                                                                                                        </tr>`;
+                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                <td>${indicator}</td>
+                                                                                                                                                                                                                                <td><span class="badge bg-primary">${v1Val}</span></td>
+                                                                                                                                                                                                                                <td><span class="badge bg-info">${v2Val}</span></td>
+                                                                                                                                                                                                                                <td><span class="${diffClass}">${diff > 0 ? '+' : ''}${diff}</span></td>
+                                                                                                                                                                                                                            </tr>`;
             });
 
             tableHtml += '</tbody></table></div>';
@@ -550,6 +667,9 @@
                 return;
             }
 
+            const vendor1Name = $('#chartVendor1 option:selected').text();
+            const vendor2Name = $('#chartVendor2 option:selected').text();
+
             const baseFilters = {
                 division: $('#division').val(),
                 plant: $('#plant').val(),
@@ -563,11 +683,11 @@
                 $.post("<?php echo e(route('admin.vendor_mis.filterJson_dashboard')); ?>", { _token: "<?php echo e(csrf_token()); ?>", vendor_id: vendor1Id, ...baseFilters }),
                 $.post("<?php echo e(route('admin.vendor_mis.filterJson_dashboard')); ?>", { _token: "<?php echo e(csrf_token()); ?>", vendor_id: vendor2Id, ...baseFilters })
             ]).then(([vendor1Data, vendor2Data]) => {
-                renderVendorComparisonCharts(vendor1Data.counts, vendor2Data.counts);
+                renderVendorComparisonCharts(vendor1Data.counts, vendor2Data.counts, vendor1Name, vendor2Name);
             });
         }
 
-        function renderVendorComparisonCharts(vendor1Data, vendor2Data) {
+        function renderVendorComparisonCharts(vendor1Data, vendor2Data, vendor1Name, vendor2Name) {
             const leadCategories = ['Safety Training', 'Training Hours', 'Mass Meeting', 'Line Walk', 'Safety Audit', 'Housekeeping Audit', 'PPE Audit', 'Tools Audit', 'Safety Kaizen', 'Near Miss'];
             const lagCategories = ['First Aid Case', 'Medical Case', 'LTIs', 'Fatality', 'Non Injury Incident', 'Severity 4&5 Violation'];
 
@@ -585,27 +705,70 @@
 
             Highcharts.chart('vendorLeadChart', {
                 chart: { type: 'column' },
-                title: { text: null },
+                title: { text: 'Vendor Lead Indicators Comparison' },
                 xAxis: { categories: leadCategories, labels: { rotation: -45, style: { fontSize: '9px' } } },
                 yAxis: { min: 0, title: { text: 'Count' } },
                 plotOptions: { column: { dataLabels: { enabled: true } } },
+                exporting: {
+                    enabled: true,
+                    buttons: {
+                        contextButton: {
+                            enabled: false
+                        }
+                    }
+                },
                 series: [
-                    { name: 'Vendor 1', data: vendor1Lead, color: '#007bff' },
-                    { name: 'Vendor 2', data: vendor2Lead, color: '#28a745' }
+                    { name: vendor1Name, data: vendor1Lead, color: '#007bff' },
+                    { name: vendor2Name, data: vendor2Lead, color: '#28a745' }
                 ]
             });
 
             Highcharts.chart('vendorLagChart', {
                 chart: { type: 'column' },
-                title: { text: null },
+                title: { text: 'Vendor Lag Indicators Comparison' },
                 xAxis: { categories: lagCategories, labels: { rotation: -45, style: { fontSize: '9px' } } },
                 yAxis: { min: 0, title: { text: 'Count' } },
                 plotOptions: { column: { dataLabels: { enabled: true } } },
+                exporting: {
+                    enabled: true,
+                    buttons: {
+                        contextButton: {
+                            enabled: false
+                        }
+                    }
+                },
                 series: [
-                    { name: 'Vendor 1', data: vendor1Lag, color: '#dc3545' },
-                    { name: 'Vendor 2', data: vendor2Lag, color: '#ffc107' }
+                    { name: vendor1Name, data: vendor1Lag, color: '#dc3545' },
+                    { name: vendor2Name, data: vendor2Lag, color: '#ffc107' }
                 ]
             });
+        }
+
+        // Download and Print Functions
+        function downloadChart(chartId, format) {
+            const chart = Highcharts.charts.find(chart => chart && chart.renderTo.id === chartId);
+            if (!chart) {
+                alert('Chart not found');
+                return;
+            }
+
+            if (format === 'excel') {
+                chart.downloadXLS();
+            } else if (format === 'pdf') {
+                chart.exportChart({
+                    type: 'application/pdf',
+                    filename: chartId + '_chart'
+                });
+            }
+        }
+
+        function printChart(chartId) {
+            const chart = Highcharts.charts.find(chart => chart && chart.renderTo.id === chartId);
+            if (!chart) {
+                alert('Chart not found');
+                return;
+            }
+            chart.print();
         }
 
         $(document).ready(function () {

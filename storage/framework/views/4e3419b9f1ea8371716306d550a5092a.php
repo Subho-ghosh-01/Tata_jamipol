@@ -253,14 +253,27 @@
                                     <option value="">Select Department</option>
                                 </select>
                             </div>
+                            <?php
+                                $today = date('d');
+                                $currentMonth = date('Y-m');
+                                $previousMonth = date('Y-m', strtotime('-1 month'));
+
+                                // If today is 1st or 2nd → only previous month allowed
+                                if ($today <= 2) {
+                                    $allowedMonth = $previousMonth;
+                                } else {
+                                    $allowedMonth = $currentMonth;
+                                }
+                            ?>
+
                             <div class="col-md-6">
                                 <label class="form-label">Reporting Month <span class="text-danger">*</span></label>
-
-
-                                <input type="month" class="form-control" name="report_month" min="<?php echo e(date('Y-m')); ?>"
-                                    max="<?php echo e(date('Y-m')); ?>" id="report_month" required>
-
+                                <input type="month" class="form-control" name="report_month" id="report_month"
+                                    value="<?php echo e($allowedMonth); ?>" min="<?php echo e($allowedMonth); ?>" max="<?php echo e($allowedMonth); ?>"
+                                    required>
                             </div>
+
+
 
                         </div>
                         <p class="hint mt-3"><i class="bi bi-lightbulb"></i> You can move back anytime; your inputs

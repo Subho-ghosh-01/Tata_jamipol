@@ -509,8 +509,13 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
                     </div>
                     <div id="action-error" class="text-danger small mt-1 d-none">Please select an action.</div>
                 </div>
-
-
+@if($flow->schedule == 1)
+                 <div class="mb-4">
+                    <label class="form-label fw-semibold">Schedule Date </label>
+   
+                        <input type="date" class="form-control shadow-sm" name="schedule_date" required>
+                </div>
+                @endif
                 <div class="mb-4">
                     <label class="form-label fw-semibold">Remarks </label>
 

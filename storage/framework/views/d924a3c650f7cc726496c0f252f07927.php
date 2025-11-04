@@ -4,7 +4,7 @@ use App\Division;
 use App\Department;
 use App\UserLogin;
 
-$vms = DB::table('vendor_mis')->where('id', $vms_details->id)->first();
+$vms = DB::table('vendor_silo')->where('id', $vms_details->id)->first();
 $user_id = Session::get('user_idSession');
 ?>
 
@@ -20,6 +20,7 @@ $user_id = Session::get('user_idSession');
 <?php if(Session::get('user_sub_typeSession') == 4): ?>
     <script>window.location.href = '<?php echo e(url("admin/dashboard")); ?>';</script>
 <?php else: ?>
+
     <iframe id="myIframe" src="<?php echo e(route('vendor_silo.edit_data_ifream', [$vms->id, $user_id])); ?>"
         style="border: none; overflow: hidden;" width="101%" width="100%" height="" scrolling="no"></iframe>
     <center>
