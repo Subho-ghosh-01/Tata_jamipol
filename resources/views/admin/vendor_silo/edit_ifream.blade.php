@@ -51,11 +51,11 @@ $vendor_level = $vms_flow->level ?? 'NA';
 
 <style>
     .file-upload-container.has-file {
-    border: 2px solid green;
-    background: #eaffea;
-    border-radius: 6px;
-    padding: 8px;
-}
+        border: 2px solid green;
+        background: #eaffea;
+        border-radius: 6px;
+        padding: 8px;
+    }
 
     .step-indicator {
         display: flex;
@@ -162,26 +162,29 @@ $vendor_level = $vms_flow->level ?? 'NA';
     }
 
     .file-preview-success {
-    display: inline-block;
-    background: #d1fae5;       /* light green background */
-    border: 2px solid #10b981; /* thick green border */
-    border-radius: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    margin-top: 0.5rem;
-    font-size: 14px;
-    font-weight: 600;
-    color: #065f46;            /* dark green text */
-}
+        display: inline-block;
+        background: #d1fae5;
+        /* light green background */
+        border: 2px solid #10b981;
+        /* thick green border */
+        border-radius: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        margin-top: 0.5rem;
+        font-size: 14px;
+        font-weight: 600;
+        color: #065f46;
+        /* dark green text */
+    }
 
-.file-preview-success a {
-    color: #065f46;            /* dark green */
-    text-decoration: none;
-}
+    .file-preview-success a {
+        color: #065f46;
+        /* dark green */
+        text-decoration: none;
+    }
 
-.file-preview-success a:hover {
-    text-decoration: underline;
-}
-
+    .file-preview-success a:hover {
+        text-decoration: underline;
+    }
 </style>
 </head>
 
@@ -378,7 +381,7 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Approver <span class="text-danger">*</span></label>
-                                    <select class="form-select" name="approver" required>
+                                    <select class="form-select" name="approver" id="approver_id" required>
                                         <option value="">Select Approver</option>
                                         <option value="6">Approver 1</option>
                                         <option value="2">Approver 2</option>
@@ -408,7 +411,8 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                             class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="regUpload">
                                         <input type="file" class="d-none" name="vehicle_reg_file" id="vehicle_reg_file"
-                                            accept="application/pdf" @if(empty($vms->registration_doc)) {{'required'}}@endif>
+                                            accept="application/pdf" @if(empty($vms->registration_doc))
+                                            {{'required'}}@endif>
 
                                         <p class="mt-2 mb-0 small text-muted">(Max 2MB, PDF)</p>
 
@@ -453,7 +457,8 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     <label class="form-label">Insurance Certificate <span
                                             class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="insuranceUpload">
-                                        <input type="file" class="d-none" name="insurance_file" @if(empty($vms->insurance_doc)) {{'required'}}@endif>
+                                        <input type="file" class="d-none" name="insurance_file"
+                                            @if(empty($vms->insurance_doc)) {{'required'}}@endif>
                                         <!-- Existing file from DB -->
                                         @if(!empty($vms->insurance_doc))
                                             <div class="file-preview-success" id="filePreview">
@@ -473,20 +478,29 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-12 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label class="form-label">Valid Fitness Inspection Date <span
                                                 class="text-danger">*</span></label>
                                         <input type="date" class="form-control" name="fitness_date"
-                                            value="{{$vms->valid_fitness_inspection_date}}" @if(empty($vms->fitness_certificate)){{'required'}}@endif>
+                                            value="{{$vms->valid_fitness_inspection_date}}"
+                                            @if(empty($vms->fitness_certificate)){{'required'}}@endif>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
-
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Valid Fitness Inspection Due Date <span
+                                                class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" name="fitness_due_date"
+                                            value="{{$vms->vehicle_fitness_due_date}}"
+                                            @if(empty($vms->fitness_certificate)){{'required'}}@endif>
+                                        <div class="invalid-feedback">Required field</div>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Fitness Certificate <span
                                             class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="fitnessUpload">
-                                        <input type="file" class="d-none" name="fitness_file" @if(empty($vms->fitness_certificate)){{'required'}}@endif>
+                                        <input type="file" class="d-none" name="fitness_file"
+                                            @if(empty($vms->fitness_certificate)){{'required'}}@endif>
                                         @if(!empty($vms->fitness_certificate))
                                             <div class="file-preview-success" id="filePreview">
                                                 <a href="{{ asset($vms->fitness_certificate) }}" target="_blank">
@@ -526,7 +540,8 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                 <div class="mb-3">
                                     <label class="form-label">PUC Certificate <span class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="pucUpload">
-                                        <input type="file" class="d-none" name="puc_file" @if(empty($vms->puc_certificate)){{'required'}}@endif>
+                                        <input type="file" class="d-none" name="puc_file"
+                                            @if(empty($vms->puc_certificate)){{'required'}}@endif>
                                         @if(!empty($vms->puc_certificate))
                                             <div class="file-preview-success" id="filePreview">
                                                 <a href="{{ asset($vms->puc_certificate) }}" target="_blank">
@@ -564,7 +579,8 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     <label class="form-label">Road Permit Certificate <span
                                             class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="pucUpload">
-                                        <input type="file" class="d-none" name="road_permit_certificate" @if(empty($vms->road_permit_certificate)){{'required'}}@endif>
+                                        <input type="file" class="d-none" name="road_permit_certificate"
+                                            @if(empty($vms->road_permit_certificate)){{'required'}}@endif>
                                         @if(!empty($vms->road_permit_certificate))
                                             <div class="file-preview-success" id="filePreview">
                                                 <a href="{{ asset($vms->road_permit_certificate) }}" target="_blank">
@@ -739,15 +755,15 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Pressure Vessel Test Date <span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="pressure_vessel_test_date" value="{{$vms->vessel_test_date}}"
-                                            required>
+                                        <input type="date" class="form-control" name="pressure_vessel_test_date"
+                                            value="{{$vms->vessel_test_date}}" required>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Pressure Vessel Due Date <span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="pressure_vessel_due_date" value="{{$vms->vessel_due_date}}"
-                                            required>
+                                        <input type="date" class="form-control" name="pressure_vessel_due_date"
+                                            value="{{$vms->vessel_due_date}}" required>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -755,7 +771,8 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     <label class="form-label">Vessel Certificate <span
                                             class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="vesselUpload">
-                                        <input type="file" class="d-none" name="pressure_vessel_file" @if(empty($vms->vessel_certiicate)){{'required'}}@endif>
+                                        <input type="file" class="d-none" name="pressure_vessel_file"
+                                            @if(empty($vms->vessel_certiicate)){{'required'}}@endif>
                                         @if(!empty($vms->vessel_certiicate))
                                             <div class="file-preview-success" id="filePreview">
                                                 <a href="{{ asset($vms->vessel_certiicate) }}" target="_blank">
@@ -765,7 +782,7 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                                     value="{{ $vms->vessel_certiicate }}">
                                             </div>
                                         @endif
-                                     
+
                                         <button type="button" class="btn btn-outline-primary">
                                             <i class="fas fa-upload me-2"></i>Upload File
                                         </button>
@@ -777,13 +794,15 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Pressure Gauge Calibration Date<span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="pressure_gauge_date" value="{{$vms->pressure_gauge_date}}" required>
+                                        <input type="date" class="form-control" name="pressure_gauge_date"
+                                            value="{{$vms->pressure_gauge_date}}" required>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Pressure Gauge Calibration Due Date <span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="pressure_gauge_due_date" value="{{$vms->pressure_gauge_due_date}}" required>
+                                        <input type="date" class="form-control" name="pressure_gauge_due_date"
+                                            value="{{$vms->pressure_gauge_due_date}}" required>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -791,7 +810,8 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     <label class="form-label">Pressure Gauge Certificate <span
                                             class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="vesselUpload">
-                                        <input type="file" class="d-none" name="pressure_gauge_file" @if(empty($vms->pressure_gauge_certificate)) {{'required'}}@endif>
+                                        <input type="file" class="d-none" name="pressure_gauge_file"
+                                            @if(empty($vms->pressure_gauge_certificate)) {{'required'}}@endif>
                                         @if(!empty($vms->pressure_gauge_certificate))
                                             <div class="file-preview-success" id="filePreview">
                                                 <a href="{{ asset($vms->pressure_gauge_certificate) }}" target="_blank">
@@ -813,15 +833,15 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Pressure Relief Valve Test Date<span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="pressure_relief_test_date" value="{{$vms->pressure_relief_test_date}}"
-                                            required>
+                                        <input type="date" class="form-control" name="pressure_relief_test_date"
+                                            value="{{$vms->pressure_relief_test_date}}" required>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Pressure Relief Valve Due Date <span
                                                 class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" name="pressure_relief_due_date" value="{{$vms->pressure_relief_due_date}}"
-                                            required>
+                                        <input type="date" class="form-control" name="pressure_relief_due_date"
+                                            value="{{$vms->pressure_relief_due_date}}" required>
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
@@ -829,8 +849,9 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                     <label class="form-label">Pressure Relief Certificate <span
                                             class="text-danger">*</span></label>
                                     <div class="file-upload-container" id="vesselUpload">
-                                        <input type="file" class="d-none" name="pressure_relief_file" @if(empty($vms->pressure_relief_certificate)) {{'required'}} @endif>
-                                           @if(!empty($vms->pressure_relief_certificate))
+                                        <input type="file" class="d-none" name="pressure_relief_file"
+                                            @if(empty($vms->pressure_relief_certificate)) {{'required'}} @endif>
+                                        @if(!empty($vms->pressure_relief_certificate))
                                             <div class="file-preview-success" id="filePreview">
                                                 <a href="{{ asset($vms->pressure_relief_certificate) }}" target="_blank">
                                                     📄 {{ basename($vms->pressure_relief_certificate) }}
@@ -1139,18 +1160,18 @@ $vendor_level = $vms_flow->level ?? 'NA';
                 });
 
                 // Special validation for file inputs
-// stepForm.find('input[type="file"][required]').each(function () {
-//     const fileInput = $(this);
-//     const existingField = fileInput.closest('.file-upload-container').find('input[type="hidden"].existing-file');
+                // stepForm.find('input[type="file"][required]').each(function () {
+                //     const fileInput = $(this);
+                //     const existingField = fileInput.closest('.file-upload-container').find('input[type="hidden"].existing-file');
 
-//     // Condition: no new file selected AND no existing file path
-//     if (!fileInput.val() && (!existingField.length || !existingField.val())) {
-//         fileInput.addClass('is-invalid');
-//         isValid = false;
-//     } else {
-//         fileInput.removeClass('is-invalid');
-//     }
-// });
+                //     // Condition: no new file selected AND no existing file path
+                //     if (!fileInput.val() && (!existingField.length || !existingField.val())) {
+                //         fileInput.addClass('is-invalid');
+                //         isValid = false;
+                //     } else {
+                //         fileInput.removeClass('is-invalid');
+                //     }
+                // });
 
 
                 if (!isValid) {
@@ -1175,13 +1196,13 @@ $vendor_level = $vms_flow->level ?? 'NA';
             });
 
             $(document).ready(function () {
-            if ($('#deputedFor').val()) {
-                $('#deputedFor').trigger('change');
-            }
+                if ($('#deputedFor').val()) {
+                    $('#deputedFor').trigger('change');
+                }
             });
 
 
-        
+
 
             // File upload click handlers
             $('.file-upload-container').each(function () {
@@ -1250,67 +1271,67 @@ $vendor_level = $vms_flow->level ?? 'NA';
 
 
         $(document).ready(function () {
-    // Loop over all upload containers
-    $('.file-upload-container').each(function () {
-        const container = $(this);
-        const fileInput = container.find('input[type="file"]');
-        const uploadBtn = container.find('button');
+            // Loop over all upload containers
+            $('.file-upload-container').each(function () {
+                const container = $(this);
+                const fileInput = container.find('input[type="file"]');
+                const uploadBtn = container.find('button');
 
-        // ✅ Check if existing file (hidden input or preview link) is present
-        if (container.find('input[type="hidden"]').length > 0 || container.find('a').length > 0) {
-            container.addClass('has-file'); // mark container as valid
-        }
-
-        // Handle file selection
-        fileInput.change(function () {
-            if (this.files && this.files[0]) {
-                const file = this.files[0];
-                const validTypes = ['application/pdf'];
-                const maxSize = 5 * 1024 * 1024; // 5MB
-
-                if (!validTypes.includes(file.type)) {
-                    alert('Only PDF files are allowed.');
-                    $(this).val('');
-                    return;
+                // ✅ Check if existing file (hidden input or preview link) is present
+                if (container.find('input[type="hidden"]').length > 0 || container.find('a').length > 0) {
+                    container.addClass('has-file'); // mark container as valid
                 }
 
-                if (file.size > maxSize) {
-                    alert('File size must be less than 5MB.');
-                    $(this).val('');
-                    return;
-                }
+                // Handle file selection
+                fileInput.change(function () {
+                    if (this.files && this.files[0]) {
+                        const file = this.files[0];
+                        const validTypes = ['application/pdf'];
+                        const maxSize = 5 * 1024 * 1024; // 5MB
 
-                // ✅ mark container green
-                container.addClass('has-file');
+                        if (!validTypes.includes(file.type)) {
+                            alert('Only PDF files are allowed.');
+                            $(this).val('');
+                            return;
+                        }
 
-                // Show selected file name
-                container.find('.file-name').remove();
-                container.append(`<div class="file-name text-success">
+                        if (file.size > maxSize) {
+                            alert('File size must be less than 5MB.');
+                            $(this).val('');
+                            return;
+                        }
+
+                        // ✅ mark container green
+                        container.addClass('has-file');
+
+                        // Show selected file name
+                        container.find('.file-name').remove();
+                        container.append(`<div class="file-name text-success">
                     📄 ${file.name}
                 </div>`);
-            }
-        });
+                    }
+                });
 
-        // Drag and drop
-        container.on('dragover', function (e) {
-            e.preventDefault();
-            container.addClass('dragover');
-        });
+                // Drag and drop
+                container.on('dragover', function (e) {
+                    e.preventDefault();
+                    container.addClass('dragover');
+                });
 
-        container.on('dragleave drop', function (e) {
-            e.preventDefault();
-            container.removeClass('dragover');
-        });
+                container.on('dragleave drop', function (e) {
+                    e.preventDefault();
+                    container.removeClass('dragover');
+                });
 
-        container.on('drop', function (e) {
-            const files = e.originalEvent.dataTransfer.files;
-            if (files.length > 0) {
-                fileInput[0].files = files;
-                fileInput.trigger('change');
-            }
+                container.on('drop', function (e) {
+                    const files = e.originalEvent.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput[0].files = files;
+                        fileInput.trigger('change');
+                    }
+                });
+            });
         });
-    });
-});
 
     </script>
 
@@ -1326,12 +1347,13 @@ $vendor_level = $vms_flow->level ?? 'NA';
         $(document).ready(function () {
             let selectedPlant = "{{ old('plant', $vms->section_id ?? '') }}";
 
+            let selectedapprover = "{{ old('approver_id', $vms->approver_id ?? '') }}";
 
             // Division change
             $('#division').on('change', function () {
                 var division_ID = $(this).val();
                 $("#plant").html('<option value="">--Select Plant--</option>');
-
+                $("#approver_id").html('<option value="">--Select --</option>');
                 if (division_ID) {
                     $.ajax({
                         type: 'GET',
@@ -1349,6 +1371,23 @@ $vendor_level = $vms_flow->level ?? 'NA';
                             }
                         }
                     });
+
+                    $.ajax({
+                        type: 'GET',
+                        url: "{{ route('admin.inclusionGet_vendor_silo', '') }}/" + selectedPlant,
+                        dataType: "json",
+                        success: function (data) {
+                            $.each(data, function (i, item) {
+                                $("#approver_id").append('<option value="' + item.id + '">' + item.name + '</option>');
+                            });
+
+                            // If we have a saved Plant → select it + trigger change
+                            if (selectedapprover) {
+                                $("#approver_id").val(selectedapprover).trigger('change');
+                                selectedapprover = ''; // prevent infinite loop
+                            }
+                        }
+                    });
                 }
             });
 
@@ -1360,7 +1399,46 @@ $vendor_level = $vms_flow->level ?? 'NA';
             }
         });
 
+        $('#plant').on('change', function () {
+            var plantID = $(this).val();
 
+
+            $("#department").html('<option value="null">--Select--</option>');
+            $("#approver_id").html('<option value="">--Select--</option>');
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: 'GET',
+                url: "{{route('admin.PlantGet_vendor_mis')}}/" + plantID,
+                contentType: 'application/json',
+                dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#department").append('<option value="' + data[i].id + '" >' + data[i].department_name + '</option>');
+                    }
+                }
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: "{{route('admin.inclusionGet_vendor_silo')}}/" + plantID,
+                contentType: 'application/json',
+                dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#approver_id").append('<option value="' + data[i].id + '" >' + data[i].name + '</option>');
+                    }
+                }
+            });
+
+
+        });
 
     </script>
 
@@ -1594,6 +1672,45 @@ $vendor_level = $vms_flow->level ?? 'NA';
             }
         });
 
+        // Due date validation
+        $(document).ready(function () {
+            const dateFields = [
+                'insurance_to',
+                'fitness_due_date',
+                'puc_due_date',
+                'valid_road_permit_due_date',
+                'pressure_vessel_due_date',
+                'pressure_gauge_due_date',
+                'pressure_relief_due_date'
+            ];
+
+            function validateDateField(input) {
+                const today = new Date().toISOString().split('T')[0];
+                const selectedDate = $(input).val();
+                const fieldName = $(input).attr('name');
+
+                if (selectedDate && selectedDate <= today) {
+                    $(input).addClass('is-invalid');
+                    $(`#${fieldName}_error`).show();
+                } else {
+                    $(input).removeClass('is-invalid');
+                    $(`#${fieldName}_error`).hide();
+                }
+            }
+
+            // 🔹 Validate on change
+            $('input[name="insurance_to"], input[name="fitness_due_date"], input[name="puc_due_date"], input[name="valid_road_permit_due_date"], input[name="pressure_vessel_due_date"], input[name="pressure_gauge_due_date"], input[name="pressure_relief_due_date"]')
+                .on('change', function () {
+                    validateDateField(this);
+                });
+
+            // 🔹 Validate on load
+            dateFields.forEach(field => {
+                const input = $(`input[name="${field}"]`);
+                if (input.length) validateDateField(input);
+            });
+        });
+
     </script>
 
 
@@ -1728,108 +1845,108 @@ $vendor_level = $vms_flow->level ?? 'NA';
         }
 
 
-   
-function setValue(id, val) {
-    let el = document.getElementById(id);
-    if (!el) return;
 
-    if (!val) {
-        el.innerText = "";
-        return;
-    }
+        function setValue(id, val) {
+            let el = document.getElementById(id);
+            if (!el) return;
 
-    // If it's a file object (from getFileVal)
-    if (typeof val === "object") {
-        // For images show thumbnail, else just a link
-        const isImage = /\.(jpg|jpeg|png|gif)$/i.test(val.name);
-        if (isImage) {
-            el.innerHTML = `<a href="${val.url}" target="_blank">
+            if (!val) {
+                el.innerText = "";
+                return;
+            }
+
+            // If it's a file object (from getFileVal)
+            if (typeof val === "object") {
+                // For images show thumbnail, else just a link
+                const isImage = /\.(jpg|jpeg|png|gif)$/i.test(val.name);
+                if (isImage) {
+                    el.innerHTML = `<a href="${val.url}" target="_blank">
                                 <img src="${val.url}" alt="${val.name}" style="max-height:60px;"/>
                             </a>`;
-        } else {
-            el.innerHTML = `<a href="${val.url}" target="_blank">${val.name}</a>` 
-                + (val.isNew ? " <em>(new)</em>" : "");
+                } else {
+                    el.innerHTML = `<a href="${val.url}" target="_blank">${val.name}</a>`
+                        + (val.isNew ? " <em>(new)</em>" : "");
+                }
+            } else {
+                // Plain text values
+                el.innerText = val;
+            }
         }
-    } else {
-        // Plain text values
-        el.innerText = val;
-    }
-}
 
-function getFileVal(name) {
-    let input = document.getElementById(name);
-    let existingFile = getVal("existing_" + name);
+        function getFileVal(name) {
+            let input = document.getElementById(name);
+            let existingFile = getVal("existing_" + name);
 
-    // Case 1: User uploaded a new file
-    if (input && input.files && input.files.length > 0) {
-        let file = input.files[0];
-        return {
-            url: URL.createObjectURL(file), // blob URL for preview
-            name: file.name,
-            isNew: true
-        };
-    }
+            // Case 1: User uploaded a new file
+            if (input && input.files && input.files.length > 0) {
+                let file = input.files[0];
+                return {
+                    url: URL.createObjectURL(file), // blob URL for preview
+                    name: file.name,
+                    isNew: true
+                };
+            }
 
-    // Case 2: Show existing saved file
-    if (existingFile) {
-        return {
-            url: "/" + existingFile,
-            name: existingFile.split("/").pop(),
-            isNew: false
-        };
-    }
+            // Case 2: Show existing saved file
+            if (existingFile) {
+                return {
+                    url: "/" + existingFile,
+                    name: existingFile.split("/").pop(),
+                    isNew: false
+                };
+            }
 
-    return null;
-}
+            return null;
+        }
 
-// 🔹 Fill preview modal
-function fillPreview() {
-    // Basic Info
-    setValue("pv_work_order_no", getVal("work_order_no"));
-    setValue("pv_validity", getVal("validity"));
-    setValue("pv_division", getVal("division"));
-    setValue("pv_section", getVal("plant"));
-    setValue("pv_approver", getVal("approver"));
+        // 🔹 Fill preview modal
+        function fillPreview() {
+            // Basic Info
+            setValue("pv_work_order_no", getVal("work_order_no"));
+            setValue("pv_validity", getVal("validity"));
+            setValue("pv_division", getVal("division"));
+            setValue("pv_section", getVal("plant"));
+            setValue("pv_approver", getVal("approver"));
 
-    // Legal Compliance
-    setValue("pv_vehicle_reg_no", getVal("vehicle_reg_no"));
-    setValue("pv_vehicle_reg_file", getFileVal("vehicle_reg_file"));
-    setValue("pv_insurance_from", getVal("insurance_from"));
-    setValue("pv_insurance_to", getVal("insurance_to"));
-    setValue("pv_insurance_file", getFileVal("insurance_file"));
-    setValue("pv_fitness_date", getVal("fitness_date"));
-    setValue("pv_fitness_file", getFileVal("fitness_file"));
-    setValue("pv_puc_inspection_date", getVal("puc_inspection_date"));
-    setValue("pv_puc_due_date", getVal("puc_due_date"));
-    setValue("pv_puc_file", getFileVal("puc_file"));
-    setValue("pv_valid_road_permit_date", getVal("valid_road_permit_date"));
-    setValue("pv_valid_road_permit_due_date", getVal("valid_road_permit_due_date"));
-    setValue("pv_road_permit_certificate", getFileVal("road_permit_certificate"));
+            // Legal Compliance
+            setValue("pv_vehicle_reg_no", getVal("vehicle_reg_no"));
+            setValue("pv_vehicle_reg_file", getFileVal("vehicle_reg_file"));
+            setValue("pv_insurance_from", getVal("insurance_from"));
+            setValue("pv_insurance_to", getVal("insurance_to"));
+            setValue("pv_insurance_file", getFileVal("insurance_file"));
+            setValue("pv_fitness_date", getVal("fitness_date"));
+            setValue("pv_fitness_file", getFileVal("fitness_file"));
+            setValue("pv_puc_inspection_date", getVal("puc_inspection_date"));
+            setValue("pv_puc_due_date", getVal("puc_due_date"));
+            setValue("pv_puc_file", getFileVal("puc_file"));
+            setValue("pv_valid_road_permit_date", getVal("valid_road_permit_date"));
+            setValue("pv_valid_road_permit_due_date", getVal("valid_road_permit_due_date"));
+            setValue("pv_road_permit_certificate", getFileVal("road_permit_certificate"));
 
-    // Safety Parameters
-    setValue("pv_vehicle_deputed_for", getVal("vehicle_deputed_for"));
-    setValue("pv_dfms_available", getVal("dfms_available"));
-    setValue("pv_gps_tracker_available", getVal("gps_tracker_available"));
-    setValue("pv_hatch_strainers", getVal("hatch_strainers"));
-    setValue("pv_fuel_tank_stainers", getVal("fuel_tank_stainers"));
-    setValue("pv_battery_placement", getVal("battery_placement"));
-    setValue("pv_fire_extinguisher", getVal("fire_extinguisher"));
-    setValue("pv_first_aid_box", getVal("first_aid_box"));
-    setValue("pv_stepney", getVal("stepney"));
-    setValue("pv_scotch_block", getVal("scotch_block"));
-    setValue("pv_earth_block", getVal("earth_block"));
+            // Safety Parameters
+            setValue("pv_vehicle_deputed_for", getVal("vehicle_deputed_for"));
+            setValue("pv_dfms_available", getVal("dfms_available"));
+            setValue("pv_gps_tracker_available", getVal("gps_tracker_available"));
+            setValue("pv_hatch_strainers", getVal("hatch_strainers"));
+            setValue("pv_fuel_tank_stainers", getVal("fuel_tank_stainers"));
+            setValue("pv_battery_placement", getVal("battery_placement"));
+            setValue("pv_fire_extinguisher", getVal("fire_extinguisher"));
+            setValue("pv_first_aid_box", getVal("first_aid_box"));
+            setValue("pv_stepney", getVal("stepney"));
+            setValue("pv_scotch_block", getVal("scotch_block"));
+            setValue("pv_earth_block", getVal("earth_block"));
 
-    // Valid Certificates
-    setValue("pv_pressure_vessel_test_date", getVal("pressure_vessel_test_date"));
-    setValue("pv_pressure_vessel_due_date", getVal("pressure_vessel_due_date"));
-    setValue("pv_pressure_vessel_file", getFileVal("pressure_vessel_file"));
-    setValue("pv_pressure_gauge_date", getVal("pressure_gauge_date"));
-    setValue("pv_pressure_gauge_due_date", getVal("pressure_gauge_due_date"));
-    setValue("pv_pressure_gauge_file", getFileVal("pressure_gauge_file"));
-    setValue("pv_pressure_relief_test_date", getVal("pressure_relief_test_date"));
-    setValue("pv_pressure_relief_due_date", getVal("pressure_relief_due_date"));
-    setValue("pv_pressure_relief_file", getFileVal("pressure_relief_file"));
-}
+            // Valid Certificates
+            setValue("pv_pressure_vessel_test_date", getVal("pressure_vessel_test_date"));
+            setValue("pv_pressure_vessel_due_date", getVal("pressure_vessel_due_date"));
+            setValue("pv_pressure_vessel_file", getFileVal("pressure_vessel_file"));
+            setValue("pv_pressure_gauge_date", getVal("pressure_gauge_date"));
+            setValue("pv_pressure_gauge_due_date", getVal("pressure_gauge_due_date"));
+            setValue("pv_pressure_gauge_file", getFileVal("pressure_gauge_file"));
+            setValue("pv_pressure_relief_test_date", getVal("pressure_relief_test_date"));
+            setValue("pv_pressure_relief_due_date", getVal("pressure_relief_due_date"));
+            setValue("pv_pressure_relief_file", getFileVal("pressure_relief_file"));
+        }
 
 
         // attach to preview button

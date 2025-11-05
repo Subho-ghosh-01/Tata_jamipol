@@ -8,7 +8,7 @@ $vms_flow = DB::table('vendor_silo_flow')->where('vendor_silo_id', $vms->id)->wh
 $vehicle_status = $vms->status;
 $vendor_level = $vms_flow->level ?? 'NA';
 
-$user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first();
+$user_check_safety = UserLogin::where('id', $user_id)->select('clm_role','silo_role')->first();
 ?>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -178,12 +178,19 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
                     @endif
 
                 </div>
-
-                <div class="form-group">
+ <div class="row">
+                <div class="col-md-6 mb-3">
                     <label>Valid Fitness Inspection Date <span class="text-danger">*</span></label>
                     <input type="date" class="form-control" name="valid_fitness_inspection_date"
                         value="{{ $vms->valid_fitness_inspection_date }}" disabled>
-                    @if(!empty($vms->fitness_certificate))
+
+                        </div>
+                   
+<div class="col-md-6 mb-3"><label>Valid Fitness Inspection Due Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="valid_fitness_inspection_due_date"
+                        value="{{ $vms->vehicle_fitness_due_date }}" disabled>                
+                    </div>
+                     @if(!empty($vms->fitness_certificate))
                         <div class="mt-2">
                             <a href="{{ asset($vms->fitness_certificate) }}" target="_blank"
                                 class="btn btn-sm btn-outline-primary">
@@ -191,7 +198,6 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
                             </a>
                         </div>
                     @endif
-
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -474,7 +480,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
     $flow = DB::table('vendor_silo_flow')->where('vendor_silo_id', $vms->id)->where('status', 'N')->where('type', 'New')->where('level', '!=', '0')->first();
 @endphp
 
-@if(($user_check_safety->clm_role == 'Safety_dept' && @$flow->department_id == '2') || ($vms->approver_id == $user_id && $vms->status == 'pending_with_inclusion_user'))
+@if(($user_check_safety->clm_role == 'Safety_dept' && @$flow->department_id == '2') || ($vms->approver_id == $user_id && $vms->status == 'pending_with_inclusion_user') || ($user_check_safety->silo_role == 'operation_dept' && @$flow->department_id == '3') )
     <fieldset class="border p-3 mb-3 rounded">
         <legend class="float-none w-auto px-2 fs-6 fw-bold text-success">Tanker Inclusion</legend>
         <div class="card-body material-card mt-4 shadow rounded-3" @if(@$flow->id) {{''}}@else{{'hidden'}}@endif>
@@ -509,7 +515,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role')->first
                     </div>
                     <div id="action-error" class="text-danger small mt-1 d-none">Please select an action.</div>
                 </div>
-@if($flow->schedule == 1)
+@if($flow->schedule  == 1)
                  <div class="mb-4">
                     <label class="form-label fw-semibold">Schedule Date </label>
    

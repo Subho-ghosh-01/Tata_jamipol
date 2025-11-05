@@ -224,7 +224,7 @@ Route::group(['middleware' => 'auth'], function () {
 		Route::get('/monthly-attendance-check/{day?}/{newStatus?}/{empPno?}/{month?}/{year?}', 'GatePassCLMSController@updateAttendance_check')->name('updateAttendance_check');
 
 		Route::get('autoworkorder/{id?}', 'GatePassCLMSController@autoworkorder')->name('autoworkorder');
-		Route::get('autoworkorder_silo/{id?}', 'Vendor_siloController@autoworkorder_silo')->name('autoworkorder_silo');
+		Route::get('autoworkorder_silo/{id?}/{uid?}', 'Vendor_siloController@autoworkorder_silo')->name('autoworkorder_silo');
 		//Route::get('getvalidity/{id?}','GatePassCLMSController@getvalidity')->name('getvalidity');
 		Route::get('getSixDirectionalView/{id?}', 'PermitController@getSixDirectionalView')->name('getSixDirectionalView');
 		Route::get('getSwpNumber/{id?}', 'PermitController@getSwpNumber')->name('getSwpNumber');
@@ -233,6 +233,7 @@ Route::group(['middleware' => 'auth'], function () {
 
 		Route::get('department_vendor_mis/{id?}', 'Vendor_misController@getDepartment')->name('departmentGet_vendor_mis');
 		Route::get('plant_vendor_mis/{id?}', 'Vendor_misController@getPlant')->name('PlantGet_vendor_mis');
+		Route::get('inclusion_vendor_silo/{id?}', 'Vendor_siloController@getinclusion')->name('inclusionGet_vendor_silo');
 		Route::get('vendor_vendor_mis/{id?}', 'Vendor_misController@getvendor')->name('vendorGet_vendor_mis');
 		Route::get('vendors_by_plant/{plantId}', 'Vendor_misController@getVendorsByPlant')->name('vendorsByPlant');
 		// Route::get('work_order/{id?}','GatepassController@getworkorder')->name('work_order');

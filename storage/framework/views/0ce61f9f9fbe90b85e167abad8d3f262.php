@@ -311,7 +311,7 @@ use App\UserLogin;
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="status" id="statusField" value="draft">
                             <input type="hidden" name="id" id="recordId" value="">
-                            <input type="hidden" name="uid" id="" value="<?php echo e($id); ?>">
+                            <input type="hidden" name="uid" id="uid" value="<?php echo e($id); ?>">
                             <!-- Step 1: Basic Information -->
                             <div class="form-step active" id="step1">
                                 <h5>Basic Information:</h5>
@@ -358,7 +358,7 @@ use App\UserLogin;
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Approver <span class="text-danger">*</span></label>
-                                    <select class="form-select" name="approver" required>
+                                    <select class="form-select" name="approver" id="approver_id" required>
                                         <option value="">Select Approver</option>
                                         <option value="6">Approver 1</option>
                                         <option value="2">Approver 2</option>
@@ -1251,7 +1251,7 @@ use App\UserLogin;
 
             $("#plant").html('<option value="">--Select--</option>');
             $("#department").html('<option value="null">--Select--</option>');
-
+            $("#approver_id").html('<option value="">--Select--</option>');
 
             $.ajaxSetup({
                 headers: {
@@ -1272,6 +1272,9 @@ use App\UserLogin;
             });
 
 
+
+
+
         });
 
 
@@ -1282,7 +1285,7 @@ use App\UserLogin;
 
 
             $("#department").html('<option value="null">--Select--</option>');
-
+            $("#approver_id").html('<option value="">--Select--</option>');
 
             $.ajaxSetup({
                 headers: {
@@ -1298,6 +1301,19 @@ use App\UserLogin;
                     console.log(data);
                     for (var i = 0; i < data.length; i++) {
                         $("#department").append('<option value="' + data[i].id + '" >' + data[i].department_name + '</option>');
+                    }
+                }
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: "<?php echo e(route('admin.inclusionGet_vendor_silo')); ?>/" + plantID,
+                contentType: 'application/json',
+                dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#approver_id").append('<option value="' + data[i].id + '" >' + data[i].name + '</option>');
                     }
                 }
             });
@@ -1517,13 +1533,16 @@ use App\UserLogin;
     <script type="text/javascript">
         var path = "<?php echo e(route('admin.autocomplete_silo')); ?>";
         $("#work_order_no").autocomplete({
+
             source: function (request, response) {
+                var uid = $('#uid').val();
                 $.ajax({
                     url: path,
                     type: 'GET',
                     dataType: "json",
                     data: {
-                        search: request.term
+                        search: request.term,
+                        uid: uid
                     },
                     success: function (data) {
                         response(data.map(item => {
@@ -1538,10 +1557,11 @@ use App\UserLogin;
         $("#work_order_no").blur(function (e) {
             if ($(this).val() != "") {
                 var cid = $(this).val();
+                var uid = $('#uid').val();
                 // alert(cid);
                 $.ajax({
                     type: "GET",
-                    url: "<?php echo e(route('admin.autoworkorder_silo')); ?>/" + cid,
+                    url: "<?php echo e(route('admin.autoworkorder_silo')); ?>/" + cid + "/" + uid,
                     contentType: 'application/json',
                     data: { cid: $(this).val() },
                     dataType: "json",

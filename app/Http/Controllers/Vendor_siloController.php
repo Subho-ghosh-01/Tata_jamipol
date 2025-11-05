@@ -27,84 +27,118 @@ class Vendor_siloController extends Controller
     public function index()
     {
         $id = Session::get('user_idSession');
+        $uid = $id;
+        $divisionId = Session::get('user_DivID_Session');
+        $userSubType = Session::get('user_sub_typeSession');
+        $clmRole = Session::get('clm_role');
+        $inclusion = Session::get('inclusion');
+        $siloRole = Session::get('silo_role');
+
         $divisions = Division::all();
 
-        $query = DB::table('vendor_silo')
+        // --------------------------
+        // Base Query
+        // --------------------------
+        $baseQuery = DB::table('vendor_silo')
             ->leftJoin('divisions', 'vendor_silo.section_id', '=', 'divisions.id')
             ->leftJoin('division_new', 'vendor_silo.division_id', '=', 'division_new.id')
             ->leftJoin('userlogins', 'vendor_silo.vendor_id', '=', 'userlogins.id')
-            ->leftJoin('vendor_silo_flow', 'vendor_silo.id', '=', 'vendor_silo_flow.vendor_silo_id')
+            ->leftJoin(
+                DB::raw('(
+                SELECT vendor_silo_id, MAX(id) AS latest_flow_id
+                FROM vendor_silo_flow
+                GROUP BY vendor_silo_id
+            ) AS latest_flow'),
+                'vendor_silo.id',
+                '=',
+                'latest_flow.vendor_silo_id'
+            )
+            ->leftJoin('vendor_silo_flow', 'latest_flow.latest_flow_id', '=', 'vendor_silo_flow.id')
             ->select(
                 'vendor_silo.*',
-                'divisions.name as section',
-                'division_new.name as division_name',
-                'userlogins.name as vendor_name',
+                'divisions.name AS section',
+                'division_new.name AS division_name',
+                'userlogins.name AS vendor_name',
                 'vendor_silo_flow.department_id'
             )
-            ->orderBy('vendor_silo.id', 'desc');
+            ->orderByDesc('vendor_silo.id');
 
-        $active_query = DB::table('vendor_silo')
-            ->leftJoin('divisions', 'vendor_silo.section_id', '=', 'divisions.id')
-            ->leftJoin('division_new', 'vendor_silo.division_id', '=', 'division_new.id')
-            ->leftJoin('userlogins', 'vendor_silo.vendor_id', '=', 'userlogins.id')
-            ->leftJoin('vendor_silo_flow', 'vendor_silo.id', '=', 'vendor_silo_flow.vendor_silo_id')
-            ->select(
-                'vendor_silo.*',
-                'divisions.name as section',
-                'division_new.name as division_name',
-                'userlogins.name as vendor_name',
-                'vendor_silo_flow.department_id'
-            )
-            ->orderBy('vendor_silo.id', 'desc');
+        // --------------------------
+        // Clone for Each Filter Type
+        // --------------------------
+        $all_query = clone $baseQuery;
+        $active_query = clone $baseQuery;
+        $inactive_query = clone $baseQuery;
+        $pending_query = clone $baseQuery;
 
-        $inactive_query = DB::table('vendor_silo')
-            ->leftJoin('divisions', 'vendor_silo.section_id', '=', 'divisions.id')
-            ->leftJoin('division_new', 'vendor_silo.division_id', '=', 'division_new.id')
-            ->leftJoin('userlogins', 'vendor_silo.vendor_id', '=', 'userlogins.id')
-            ->leftJoin('vendor_silo_flow', 'vendor_silo.id', '=', 'vendor_silo_flow.vendor_silo_id')
-            ->select(
-                'vendor_silo.*',
-                'divisions.name as section',
-                'division_new.name as division_name',
-                'userlogins.name as vendor_name',
-                'vendor_silo_flow.department_id'
-            )
-            ->orderBy('vendor_silo.id', 'desc');
-        // Apply filtering based on session conditions
-        if (Session::get('user_sub_typeSession') != 3) {
-            if (Session::get('clm_role') == 'safety_dept') {
-                $query->where('vendor_silo.status', 'Pending_with_safety')->where('vendor_silo.section_id', Session::get('user_DivID_Session'));
-                $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', Session::get('user_DivID_Session'));
-                $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', Session::get('user_DivID_Session'));
-            } else if (Session::get('inclusion') == 1) {
-                $query->where('vendor_silo.status', 'pending_with_inclusion_user')->where('vendor_silo.approval_id', Session::get('user_idSession'));
-                $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', Session::get('user_DivID_Session'));
-                $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', Session::get('user_DivID_Session'));
-            } else if (Session::get('silo_role') == 'operation_dept') {
-                $query->where('vendor_silo.status', 'pending_with_operation_user')->where('vendor_silo_flow.section_id', Session::get('user_DivID_Session'));
-                $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', Session::get('user_DivID_Session'));
-                $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', Session::get('user_DivID_Session'));
+        // ======================================================
+        // 🧩 ROLE-FIRST LOGIC — applies to ALL subtypes (including 3)
+        // ======================================================
+        if ($clmRole == 'Safety_dept') {
+
+            $all_query->where('vendor_silo.section_id', $divisionId);
+            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', $divisionId);
+            $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', $divisionId);
+            $pending_query
+                ->whereIn('vendor_silo.status', ['pending_with_safety', 'pending_with_safety_training'])
+                ->where('vendor_silo.section_id', $divisionId);
+
+        } elseif ($inclusion == 1) {
+
+            $all_query->where('vendor_silo.approver_id', $uid);
+            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', $divisionId);
+            $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', $divisionId);
+            $pending_query
+                ->where('vendor_silo.status', 'pending_with_inclusion_user')
+                ->where('vendor_silo.approver_id', $uid);
+
+        } elseif ($siloRole == 'operation_dept') {
+
+            $all_query->where('vendor_silo.section_id', $divisionId);
+            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', $divisionId);
+            $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', $divisionId);
+            $pending_query
+                ->where('vendor_silo.status', 'pending_with_operation_dept')
+                ->where('vendor_silo.section_id', $divisionId);
+
+        } else {
+            // ======================================================
+            // 🧩 NON-ROLE LOGIC (applies if user has no Safety/Inclusion/Operation role)
+            // ======================================================
+            if ($userSubType == 3) {
+                // subtype 3 normal user (e.g. admin-level or read-only)
+                $active_query->where('vendor_silo.status', 'approve');
+                $inactive_query->where('vendor_silo.status', 'inactive');
+                $pending_query->where('vendor_silo.status', 'pending');
             } else {
-                $query->where('vendor_silo.created_by', Session::get('user_idSession'));
+                // other users (creator-based filtering)
+                $all_query->where('vendor_silo.created_by', $uid);
+                $active_query->where('vendor_silo.created_by', $uid)->where('vendor_silo.status', 'approve');
+                $inactive_query->where('vendor_silo.created_by', $uid)->where('vendor_silo.status', 'inactive');
+                $pending_query->where('vendor_silo.created_by', $uid)->where('vendor_silo.status', 'pending');
             }
         }
 
-        $vms_lists = $query->get();
+        // --------------------------
+        // Fetch Results
+        // --------------------------
+        $vms_lists = $all_query->get();
         $vms_activelists = $active_query->get();
-        $vms_inactivelists = $active_query->get();
-        // Encrypt ID for each item
-        $vms_lists = $vms_lists->map(function ($item) {
-            $item->enc_id = Crypt::encrypt($item->id);
-            return $item;
-        });
+        $vms_inactivelists = $inactive_query->get();
+        $vms_pendinglists = $pending_query->get();
 
-return view('admin.vendor_silo.index', compact(
-    'divisions',
-    'id',
-    'vms_lists',
-    'vms_activelists',
-    'vms_inactivelists'
-));    }
+        // --------------------------
+        // Return to View
+        // --------------------------
+        return view('admin.vendor_silo.index', compact(
+            'divisions',
+            'id',
+            'vms_lists',
+            'vms_activelists',
+            'vms_inactivelists',
+            'vms_pendinglists'
+        ));
+    }
 
 
 
@@ -361,7 +395,7 @@ return view('admin.vendor_silo.index', compact(
             $loop = [
                 ['type' => 'vendor', 'department_id' => 0, 'level' => 0, 'type_status' => 'New', 'schedule_safety' => 0],
                 ['type' => 'inclusion', 'department_id' => $request->approver_id, 'level' => 1, 'type_status' => 'New', 'schedule_safety' => 0], // in department we put user_id for this row only
-                ['type' => 'safety', 'department_id' => 2, 'level' => 2, 'type_status' => 'New', 'schedule_safety' => 1],
+                ['type' => 'safety_training', 'department_id' => 2, 'level' => 2, 'type_status' => 'New', 'schedule_safety' => 1],
                 ['type' => 'safety', 'department_id' => 2, 'level' => 3, 'type_status' => 'New', 'schedule_safety' => 0],
                 ['type' => 'operation_dept', 'department_id' => 3, 'level' => 4, 'type_status' => 'New', 'schedule_safety' => 0]
             ];
@@ -374,17 +408,18 @@ return view('admin.vendor_silo.index', compact(
                     'type' => $item['type'],
                     'department_id' => $item['department_id'],
                     'level' => $item['level'],
-                    'type_status' => 'New'
+                    'type_status' => 'New',
+                    'schedule_safety' => $item['schedule_safety']
                 ]);
 
                 // Track desired ID by level
-                if ($item['level'] != 0 && $item['level'] != 2) {
+                if ($item['level'] == 1) {
                     $desiredIds[$item['level']] = $desired_id;
                 }
             }
 
             foreach ($loop as $item) {
-                if ($item['level'] != 0 && $item['level'] != 2) {
+                if ($item['level'] == 1) {
                     DB::table('vendor_silo_flow')->insert([
                         'vendor_silo_id' => $vendor_silo_id,
                         'desired_id' => $desiredIds[$item['level']],
@@ -392,8 +427,8 @@ return view('admin.vendor_silo.index', compact(
                         'level' => $item['level'],
                         'created_datetime' => $datetime,
                         'status' => 'N',
-                        'type' => $item['type'],
-                        'schedule' => $item['schedule_safety']
+                        'type' => 'New',
+
 
 
                     ]);
@@ -590,6 +625,7 @@ return view('admin.vendor_silo.index', compact(
                             'created_datetime' => $datetime,
                             'status' => 'N',
                             'type' => 'New',
+                            'schedule' => $find_desired->schedule_safety,
                             'schedule_date' => $schedule_date
                         ]);
 
@@ -597,6 +633,8 @@ return view('admin.vendor_silo.index', compact(
                         if ($check_current->status == 'pending_with_inclusion_user') {
                             $status = 'pending_with_safety_training';
                         } elseif ($check_current->status == 'pending_with_safety_training') {
+                            $status = 'pending_with_safety';
+                        } elseif ($check_current->status == 'pending_with_safety') {
                             $status = 'pending_with_operation_dept';
                         } elseif ($check_current->status == 'pending_with_operation_dept') {
                             $status = 'approve';
@@ -1073,30 +1111,55 @@ return view('admin.vendor_silo.index', compact(
         return $department;
     }
 
-    public function autocomplete_silo(Request $request)
+    public function getinclusion($id)
     {
 
 
-        $data = DB::table('work_order')->select('order_code', 'id')
+        $inclusion = UserLogin::where('user_type', '1')
+            ->where('division_id', $id)
+            ->where('inclusion_initiator', 1)
+            ->select('id', 'name')
+            ->get();
+
+        return $inclusion;
+    }
+
+    public function autocomplete_silo(Request $request)
+    {
+        // Get the user's division_id
+        $check_user = UserLogin::where('id', $request->get('uid'))
+            ->select('division_id', 'vendor_code')
+            ->first();
+
+        if (!$check_user) {
+            return response()->json([]); // No user found, return empty list
+        }
+
+
+        $divisionId = $check_user->division_id; // ✅ Extract the division_id value
+        $vendor_code = $check_user->vendor_code;
+        // Fetch matching work orders
+        $data = DB::table('work_order')
+            ->select('order_code', 'id')
             ->where('order_code', 'LIKE', '%' . $request->get('search') . '%')
-            // ->where('division_id', Session::get('user_DivID_Session'))
+            ->where('division_id', $divisionId)
+            ->where('vendor_code', $vendor_code)
+            ->limit(10) // optional: limit results for faster autocomplete
             ->get();
 
         return response()->json($data);
-
-
-
-        //echo json_encode($return_arr);
-        //  $da=json_decode($return_arr);
-        // return response()->json($da[0]->order_code);
-        // return response()->json($da[0]->order_code);
     }
-    public function autoworkorder_silo($id)
+    public function autoworkorder_silo($id, $uid)
     {
+
+        $check_div = UserLogin::where('id', $uid)->select('division_id', 'vendor_code')->first();
+        $divsion_id = $check_div->division_id;
+        $vendor_code = $check_div->vendor_code;
         $order_validity = DB::table('work_order')
             ->select('order_validity')
             ->where('order_code', $id)
-            // ->where('division_id', Session::get('user_DivID_Session'))
+            ->where('division_id', $divsion_id)
+            ->where('vendor_code', $vendor_code)
             ->first(); // use ->first() instead of ->get() for single row
 
         if ($order_validity && isset($order_validity->order_validity)) {
