@@ -360,9 +360,7 @@ use App\UserLogin;
                                     <label class="form-label">Approver <span class="text-danger">*</span></label>
                                     <select class="form-select" name="approver" id="approver_id" required>
                                         <option value="">Select Approver</option>
-                                        <option value="6">Approver 1</option>
-                                        <option value="2">Approver 2</option>
-                                        <option value="3">Approver 3</option>
+
                                     </select>
                                     <div class="invalid-feedback">Required field</div>
                                 </div>
@@ -738,8 +736,9 @@ use App\UserLogin;
                                         <div class="invalid-feedback">Required field</div>
                                     </div>
                                 </div>
-                                Note : Every Field is Mandatory to have if any point is selected as 'No' Then Safety
-                                Department will reject the request.
+                                {{-- Note : Every Field is Mandatory to have if any point is selected as 'No' Then
+                                Safety
+                                Department will reject the request. --}}
                                 {{-- <div class="form-check mb-3">
                                     <input class="form-check-input" type="checkbox" id="declaration">
                                     <label class="form-check-label" for="declaration">
@@ -840,7 +839,7 @@ use App\UserLogin;
                                 data-bs-target="#pv-lag" type="button" role="tab">Safety Parameters</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
                                 data-bs-target="#pv-valid_certificate" type="button" role="tab">Valid
-                                Certificates</button></li>
+                                Certification</button></li>
                     </ul>
 
                     <div class="tab-content p-3">

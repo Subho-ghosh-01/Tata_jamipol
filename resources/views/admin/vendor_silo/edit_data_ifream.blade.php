@@ -150,7 +150,7 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role','silo_r
                         <div class="mt-2">
                             <a href="{{ asset($vms->registration_doc) }}" target="_blank"
                                 class="btn btn-sm btn-outline-primary">
-                                📎 Registration Attachment
+                                📎 Registration (RC Proof) Attachment 
                             </a>
                         </div>
                     @endif
@@ -464,7 +464,17 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role','silo_r
                         value="{{date('d-m-Y H:i:s', strtotime($vms1->remarks_datetime))}}" disabled>
                 </div>
             </div>
+            @if($vms1->schedule_date != '1900-01-01' && !empty($vms1->schedule_date))
+           <div class="row mb-4">
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">📝 Schedule Date</label>
+                    <input type="date" class="form-control"
+                        value="{{ ucfirst(@$vms1->schedule_date ?? 'Edited/Corrected  by Vendor') }}" disabled>
+                </div>
+              
+            </div>
 
+@endif
             <div class="mb-4">
                 <label class="form-label fw-semibold">💬 Remarks</label>
                 <textarea name="remarks" rows="4" class="form-control shadow-sm" placeholder=""
@@ -504,18 +514,18 @@ $user_check_safety = UserLogin::where('id', $user_id)->select('clm_role','silo_r
                                 <i class="fas fa-check-circle me-1"></i> Approve
                             </label>
                         </div>
-                        &nbsp;&nbsp;
+                        &nbsp;&nbsp;@if(@$flow->schedule  != 1)
                         <div>
                             <input type="radio" class="btn-check" name="action" id="btn-return" value="return"
                                 autocomplete="off" hidden>
                             <label class="btn btn-outline-danger px-4 py-2 rounded-pill" for="btn-return">
                                 <i class="fas fa-undo-alt me-1"></i> Reject
                             </label>
-                        </div>
+                        </div> @endif
                     </div>
                     <div id="action-error" class="text-danger small mt-1 d-none">Please select an action.</div>
                 </div>
-@if($flow->schedule  == 1)
+@if(@$flow->schedule  == 1)
                  <div class="mb-4">
                     <label class="form-label fw-semibold">Schedule Date </label>
    

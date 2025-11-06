@@ -748,7 +748,7 @@ $vendor_level = $vms_flow->level ?? 'NA';
                             </div>
                             <!-- Step 4: Certifications -->
                             <div class="form-step" id="step4">
-                                <h5>Valid Certificate :
+                                <h5>Valid Certification :
 
                                 </h5><br>
                                 <div class="row">
@@ -927,7 +927,7 @@ $vendor_level = $vms_flow->level ?? 'NA';
                                 data-bs-target="#pv-lag" type="button" role="tab">Safety Parameters</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
                                 data-bs-target="#pv-valid_certificate" type="button" role="tab">Valid
-                                Certificates</button></li>
+                                Certification</button></li>
                     </ul>
 
                     <div class="tab-content p-3">
@@ -968,6 +968,9 @@ $vendor_level = $vms_flow->level ?? 'NA';
 
                                 <div class="col-md-6"><strong>Fitness Date:</strong> <span id="pv_fitness_date"></span>
                                 </div>
+
+                                <div class="col-md-6"><strong>Fitness Due Date:</strong> <span
+                                        id="pv_fitness_due_date"></span></div>
                                 <div class="col-md-6"><strong>Fitness Certificate:</strong> <span
                                         id="pv_fitness_file"></span></div>
                                 <div class="col-md-6"><strong>PUC Inspection Date:</strong> <span
@@ -1052,7 +1055,8 @@ $vendor_level = $vms_flow->level ?? 'NA';
 
                     <div class="form-check mt-2">
                         <input class="form-check-input" type="checkbox" id="consentCheck">
-                        <label class="form-check-label" for="consentCheck">I confirm the information and attachments are
+                        <label class="form-check-label" for="consentCheck">I confirm the information and attachments
+                            are
                             accurate.</label>
                     </div>
                 </div>
@@ -1915,6 +1919,7 @@ $vendor_level = $vms_flow->level ?? 'NA';
             setValue("pv_insurance_to", getVal("insurance_to"));
             setValue("pv_insurance_file", getFileVal("insurance_file"));
             setValue("pv_fitness_date", getVal("fitness_date"));
+            setValue("pv_fitness_due_date", getVal("fitness_due_date"));
             setValue("pv_fitness_file", getFileVal("fitness_file"));
             setValue("pv_puc_inspection_date", getVal("puc_inspection_date"));
             setValue("pv_puc_due_date", getVal("puc_due_date"));

@@ -77,44 +77,48 @@ class Vendor_siloController extends Controller
         if ($clmRole == 'Safety_dept') {
 
             $all_query->where('vendor_silo.section_id', $divisionId);
-            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', $divisionId);
-            $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', $divisionId);
+            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', '!=', 'approve')->where('vendor_silo.section_id', $divisionId);
+            $inactive_query->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', 'approve')->where('vendor_silo.section_id', $divisionId);
             $pending_query
                 ->whereIn('vendor_silo.status', ['pending_with_safety', 'pending_with_safety_training'])
+                ->orwhereIn('vendor_silo.return_status', ['pending_with_safety', 'pending_with_safety_training'])
                 ->where('vendor_silo.section_id', $divisionId);
 
         } elseif ($inclusion == 1) {
 
             $all_query->where('vendor_silo.approver_id', $uid);
-            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', $divisionId);
-            $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', $divisionId);
+            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', '!=', 'approve')->where('vendor_silo.section_id', $divisionId);
+            $inactive_query->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', 'approve')->where('vendor_silo.section_id', $divisionId);
             $pending_query
                 ->where('vendor_silo.status', 'pending_with_inclusion_user')
+                ->orwhereIn('vendor_silo.return_status', ['pending_with_inclusion_user'])
                 ->where('vendor_silo.approver_id', $uid);
 
         } elseif ($siloRole == 'operation_dept') {
 
             $all_query->where('vendor_silo.section_id', $divisionId);
-            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.section_id', $divisionId);
-            $inactive_query->where('vendor_silo.status', 'inactive')->where('vendor_silo.section_id', $divisionId);
+            $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', '!=', 'approve')->where('vendor_silo.section_id', $divisionId);
+            $inactive_query->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', 'approve')->where('vendor_silo.section_id', $divisionId);
             $pending_query
                 ->where('vendor_silo.status', 'pending_with_operation_dept')
                 ->where('vendor_silo.section_id', $divisionId);
 
         } else {
+
+
             // ======================================================
             // 🧩 NON-ROLE LOGIC (applies if user has no Safety/Inclusion/Operation role)
             // ======================================================
             if ($userSubType == 3) {
                 // subtype 3 normal user (e.g. admin-level or read-only)
-                $active_query->where('vendor_silo.status', 'approve');
-                $inactive_query->where('vendor_silo.status', 'inactive');
+                $active_query->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', '!=', 'approve');
+                $inactive_query->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', 'approve');
                 $pending_query->where('vendor_silo.status', 'pending');
             } else {
                 // other users (creator-based filtering)
                 $all_query->where('vendor_silo.created_by', $uid);
-                $active_query->where('vendor_silo.created_by', $uid)->where('vendor_silo.status', 'approve');
-                $inactive_query->where('vendor_silo.created_by', $uid)->where('vendor_silo.status', 'inactive');
+                $active_query->where('vendor_silo.created_by', $uid)->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', '!=', 'approve');
+                $inactive_query->where('vendor_silo.created_by', $uid)->where('vendor_silo.status', 'approve')->where('vendor_silo.return_status', 'approve');
                 $pending_query->where('vendor_silo.created_by', $uid)->where('vendor_silo.status', 'pending');
             }
         }
@@ -206,11 +210,7 @@ class Vendor_siloController extends Controller
 
         // Manual conditional validation (val > 0 => doc required)
 
-        if ($request->status == 'draft') {
-            $status = 'draft';
-        } elseif ($request->status == 'final') {
-            $status = 'pending_with_inclusion_user';
-        }
+
 
 
 
@@ -302,6 +302,25 @@ class Vendor_siloController extends Controller
 
         $sl_get = DB::table('vendor_silo')->select('sl', 'full_sl')->first();
 
+        $get_silo_status = DB::table('vendor_silo')->where('id', $request->id)->first();
+        if ($request->status == 'draft') {
+
+            if (@$get_silo_status->status == 'return_by_safety') {
+                $status = 'return_by_safety';
+            } else {
+                $status = 'draft';
+            }
+        } elseif ($request->status == 'final') {
+            if (@$get_silo_status->status == 'return_by_safety') {
+                $status = 'pending_with_safety';
+            } else {
+                $status = 'pending_with_inclusion_user';
+            }
+        }
+
+
+
+
         if (empty($request->id)) {
             if (!empty($sl_get->sl)) {
                 $sl = $sl_get->sl + 1;
@@ -373,10 +392,38 @@ class Vendor_siloController extends Controller
 
 
         if ($request->id) {
+            $datetime = date('Y-m-d H:i:s');
             $vendor_silo_id = $request->id;
             $vendor_silo = DB::table('vendor_silo')
                 ->where('id', $request->id)
                 ->update($data);
+            if ($get_silo_status->status == 'return_by_safety') {
+
+
+                $find_desired = DB::table('vendor_silo_desired')->where('level', 3)->where('vendor_silo_id', $request->id)->where('type_status', 'New')->where('type', 'safety')->first();
+                if ($request->status == 'final') {
+                    DB::table('vendor_silo_flow')->insert([
+                        'vendor_silo_id' => $request->id,
+                        'desired_id' => $find_desired->id,
+                        'department_id' => $find_desired->department_id,
+                        'level' => $find_desired->level,
+                        'created_datetime' => $datetime,
+                        'status' => 'N',
+                        'type' => 'New',
+                        'schedule' => 0
+
+                    ]);
+                }
+
+
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data saved successfully!',
+                    'id' => $vendor_silo_id
+                ]);
+            }
+
             DB::table('vendor_silo_desired')->where('vendor_silo_id', $vendor_silo_id)->delete();
             DB::table('vendor_silo_flow')->where('vendor_silo_id', $vendor_silo_id)->delete();
         } else {
@@ -589,7 +636,8 @@ class Vendor_siloController extends Controller
                     'status' => 'Y',
                     'decision' => $decision,
                     'remarks' => $remarks,
-                    'remarks_datetime' => $datetime
+                    'remarks_datetime' => $datetime,
+                    'schedule_date' => $schedule_date
 
                 ]);
 
@@ -599,15 +647,38 @@ class Vendor_siloController extends Controller
 
                     $find_desired = DB::table('vendor_silo_desired')->where('level', $level)->where('vendor_silo_id', $id)->where('type_status', 'New')->first();
 
-                    DB::table('vendor_silo_flow')->insert([
-                        'vendor_silo_id' => $id,
-                        'desired_id' => $find_desired->id,
-                        'department_id' => $find_desired->department_id,
-                        'level' => $find_desired->level,
-                        'created_datetime' => $datetime,
-                        'status' => 'N',
-                        'type' => 'New',
+                    $check_current = DB::table('vendor_silo')->where('id', $id)->select('status')->first();
 
+
+                    if ($check_current->status == 'pending_with_inclusion_user') {
+                        $status = 'reject';
+                    } elseif ($check_current->status == 'pending_with_safety_training') {
+                        $status = 'return';
+                    } elseif ($check_current->status == 'pending_with_safety') {
+                        $status = 'return_by_safety';
+                    } elseif ($check_current->status == 'pending_with_operation_dept') {
+                        $status = 'reject';
+                    }
+
+
+                    if ($check_current->status == 'pending_with_safety') {
+
+
+                        // DB::table('vendor_silo_flow')->insert([
+                        //     'vendor_silo_id' => $id,
+                        //     'desired_id' => $find_desired->id,
+                        //     'department_id' => $find_desired->department_id,
+                        //     'level' => $find_desired->level,
+                        //     'created_datetime' => $datetime,
+                        //     'status' => 'N',
+                        //     'type' => 'New',
+                        //     'schedule' => 0
+
+                        // ]);
+                    }
+
+                    DB::table('vendor_silo')->where('id', $id)->update([
+                        'status' => $status,
                     ]);
                 }
 
@@ -626,7 +697,7 @@ class Vendor_siloController extends Controller
                             'status' => 'N',
                             'type' => 'New',
                             'schedule' => $find_desired->schedule_safety,
-                            'schedule_date' => $schedule_date
+
                         ]);
 
                         $check_current = DB::table('vendor_silo')->where('id', $id)->select('status')->first();
